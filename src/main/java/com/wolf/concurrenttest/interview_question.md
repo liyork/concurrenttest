@@ -1,0 +1,17 @@
+中低并发时，ca是优于独占锁
+
+Exchanger、Callable&Future、阻塞队列BlockingQueue的实现原理
+ConcurrentHashMap的的实现原理
+CopyOnWriteArrayList的复制操作发生在什么时机
+ConcurrentLinkedQueue的插入算法
+
+wait，notify和notifyAll都是锁级别的操作
+
+你应该在循环中检查等待条件:
+处于等待状态的线程可能会收到错误警报和伪唤醒，如果不在循环中检查等待条件，程序就会在没有满足结束条件的情况下退出。
+
+Volatile变量的写对于之后的读线程是可见的。
+
+当线程处于wait()状态下被唤醒，wait()在被唤醒后还需要重新去获取锁
+
+
