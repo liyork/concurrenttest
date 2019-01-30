@@ -403,7 +403,7 @@ public class ExecutorsTest {
         System.out.println("timingThreadPool.getCompletedTaskCount():" + timingThreadPool.getCompletedTaskCount());
         System.out.println("timingThreadPool.getLargestPoolSize():" + timingThreadPool.getLargestPoolSize());
         System.out.println("timingThreadPool.getPoolSize():" + timingThreadPool.getPoolSize());
-        System.out.println("timingThreadPool.getActiveCount():" + timingThreadPool.getActiveCount());
+        System.out.println("timingThreadPool.getActiveWorkerCount():" + timingThreadPool.getActiveCount());
 
     }
 

@@ -2,8 +2,6 @@ package com.wolf.concurrenttest.thread;
 
 import com.wolf.concurrenttest.common.TakeTimeUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 /**
@@ -34,12 +32,12 @@ public class SynMethodClass {
         TakeTimeUtils.simulateLongTimeOperation(5000000);
     }
 
-    synchronized void test2() {
+    public synchronized void test2() {
         System.out.println("test2...");
     }
 
     //静态方法使用的锁是类变量，只有获取的相同锁才可以实现同步
-    synchronized static void test4() {
+    public synchronized static void test4() {
         System.out.println("test4...");
     }
 

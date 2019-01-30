@@ -9,8 +9,8 @@ import java.util.concurrent.Executors;
  * Description:
  * 锁有两个队列，就绪队列(notify,锁释放了)，阻塞队列(wait,等待获取锁)
  * wait,执行状态进入等待队列，等待状态
- * notify，通知等待队列中*一个*线程进入阻塞队列，可运行状态
- * runnable和running状态可互换，看cpu分配时间片
+ * notify，通知等待队列中*一个*线程进入就绪队列，可运行状态
+ * runnable和running状态可互换，看cpu分配时间片执行
  * <br/> Created on 2017/4/27 22:00
  *
  * @author 李超

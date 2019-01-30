@@ -2,7 +2,9 @@ package com.wolf.concurrenttest.productandconsumer.onetoone.usesynchronized.mult
 
 /**
  * <p> Description:
- * 假死的原因是由于使用了notify——产生了信号丢失，那么如果总是唤醒的同类，就有可能大家都在等待。
+ * 假死的原因是由于使用了notify——产生了信号丢失，即唤醒的同类，然后满足等待条件，又进入等待，此信号丢失了。
+ *
+ * 本例中使用了while进行循环判定，所以不会出现wait唤醒后继续操作非正常的数据
  * <p/>
  * Date: 2016/6/12
  * Time: 14:33
