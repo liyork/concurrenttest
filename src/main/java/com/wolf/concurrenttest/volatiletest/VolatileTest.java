@@ -4,7 +4,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 原子性、可见性、顺序性(有依赖关系的保证结果正确)
  * <br/> Created on 2017/2/23 8:33
  *
  * @author 李超

@@ -12,8 +12,10 @@ import java.util.concurrent.Executors;
  */
 public class VolatileSourceCodeTest {
 
+    private static  int q = 1;
     private static volatile int a = 1;
     private static  int b = 2;
+
 
     public static void main(String[] args) throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -38,7 +40,8 @@ public class VolatileSourceCodeTest {
 
         Thread.sleep(3000);
 
-        a = 3;
+        q ++;
+        a = q;
         b = 4;
 
         executorService.shutdown();

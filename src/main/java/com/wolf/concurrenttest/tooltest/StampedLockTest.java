@@ -8,12 +8,13 @@ import java.util.concurrent.locks.StampedLock;
 
 /**
  * Description:乐观读写锁
- * 基于clh自旋锁实现,先获取，失败则自旋，再失败则进入队列等待
+ * 基于clh自旋锁实现,先获取，失败则自旋，再失败则进入队列等待,似乎是最快的?在任何场景(读多写少、读写一样、写多读少)？
  * <br/> Created on 24/03/2018 7:00 PM
  *
  * @author 李超
  * @since 1.0.0
  */
+//todo 待研究
 public class StampedLockTest {
 
     private double x, y;

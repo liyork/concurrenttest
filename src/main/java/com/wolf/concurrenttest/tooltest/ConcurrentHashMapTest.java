@@ -1,5 +1,6 @@
 package com.wolf.concurrenttest.tooltest;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -19,14 +20,11 @@ public class ConcurrentHashMapTest {
 //        testBase();
 
         for (int i = 0; i < 10; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println(testConcurrentInitialMap("a", 1));
-                }
+            new Thread(() -> {
+                Integer result = testConcurrentInitialMap("a", 1);
+                System.out.println(Thread.currentThread().getName() + "_getResult:" + result);
             }).start();
         }
-
     }
 
     private static void testBase() {
@@ -57,20 +55,19 @@ public class ConcurrentHashMapTest {
         integers.add(4);
     }
 
-    private static ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-    //只有第一次放入的才能成功返回
-    private static Boolean testConcurrentInitialMap(String key, Integer value) {
+    private static Map<String, Integer> map = new ConcurrentHashMap<>();
 
+    //只有第一次放入的才能成功返回
+    private static Integer testConcurrentInitialMap(String key, Integer value) {
 
         Integer result = map.get(key);
         if (null == result) {
-            Integer integer = map.putIfAbsent(key, value);
-            if (null == integer) {
+            result = map.putIfAbsent(key, value);
+            if (result == null) {
                 System.out.println(Thread.currentThread().getName() + " getvalue is null");
-                return true;
             }
         }
 
-        return false;
+        return result;
     }
 }

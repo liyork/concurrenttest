@@ -16,14 +16,15 @@ package com.wolf.concurrenttest.threadlocal;
 class Person1 {
 
     private Object lock = new Object();
-    private static ThreadLocal<TestNode> threadLocal = new ThreadLocal<TestNode>() {
-        @Override
-        protected TestNode initialValue() {
-            TestNode testNode = new TestNode();
-            testNode.name = "x1";
-            return testNode;
-        }
-    };
+
+    //我们自己构造ThreadLocal是通过匿名内部类构造的。
+    //lambda中，构造了SuppliedThreadLocal是ThreadLocal的子类，我们函数是Supplier,执行get时就会调用SuppliedThreadLocal的get
+    //进而调用()->{}的get方法。提供了便捷性
+    private static ThreadLocal<TestNode> threadLocal = ThreadLocal.withInitial(() -> {
+        TestNode testNode = new TestNode();
+        testNode.name = "x1";
+        return testNode;
+    });
 
     public void getAndSet() {
         //头一开始，synchronized放在了方法上，jvm内部使用他自己的锁，然后我又用lock.wait所以就抛异常了IllegalMonitorStateException..

@@ -1,7 +1,11 @@
 package com.wolf.concurrenttest.productandconsumer.onetoone.usesynchronized.multi;
 
 /**
- * <p> Description:
+ * <p> Description: 需要保证product线程安全。
+ *
+ * guarded suspension模式，不满足条件则挂起，满足再执行
+ * 关注的是当某个条件(临界值)不满足时将操作的线程正确地挂起，以防止出现数据不一致或者操作超过临界值的控制范围。
+ *
  * <p/>
  * Date: 2016/6/12
  * Time: 14:33

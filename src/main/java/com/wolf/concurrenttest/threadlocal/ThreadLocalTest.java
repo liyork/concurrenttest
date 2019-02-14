@@ -20,6 +20,15 @@ import java.util.concurrent.Executors;
  * <p>
  * 为什么关系要放在thread内呢？若放在threadlocal中，势必要进行同步操作，因为写读有并发问题。
  * 那么放thread中就没有这种情况。可能就有些浪费资源，多个map
+ *
+ * WeakReference本身可以作为引用对对象如：
+ * Object obj = new Object();
+ * WeakReference wr = new WeakReference(obj);
+ * obj = null;
+ * 这样，在栈内存中有wr引用堆内存的obj，当jvm回收时会查看到wr是若引用，那么就会对引用的obj清理，然后wr获取时就会null。
+ * 而threadlocal中使用的Entry是扩展了WeakReference，多了一个value而已，当ThreadLocalMap.table中的entry的key为
+ * null时就是回收了，所以就可以清理entry了。
+ * 但是WeakReference如何被清理呢？o,是被threadlocal主动设置为null即没有任何地方引用entry和里面value了。
  * <p>
  * <p/>
  * Date: 2015/9/28
