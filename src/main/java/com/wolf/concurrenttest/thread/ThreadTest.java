@@ -13,13 +13,15 @@ import java.util.stream.IntStream;
  * <p>
  * 在JAVA环境中，线程Thread有如下几个状态：
  * <p>
- * 1.NEW
+ * 1.NEW，thread对象创建但是没有执行
  * 2.RUNNABLE(NEW状态调用start之后、RUNNING状态cpu调度轮训暂时切换到其他线程、RUNNING状态调用yield、BLOCKED状态读取io结束、
- * BLOCKED状态休眠结束、BLOCKED状态被notify、notifyall、BLOCKED状态获取锁资源、BLOCKED状态被interrupt)
- * 3.RUNNING(NEW/RUNNABLE状态cpu schedule)
- * 4.BLOCKED(RUNNING状态调用了wait、sleep、阻塞io、请求锁)
- * 5.TERMINATED：最终状态(RUNNING状态调用了stop、BLOCKED状态调用了stop或jvm crash、正常运行结束、异常结束线程)
+ * BLOCKED状态休眠结束、BLOCKED状态被notify、notifyall、BLOCKED状态获取锁资源、BLOCKED状态被interrupt，NEW/RUNNABLE状态cpu schedule)
+ * 3.BLOCKED(RUNNING状态调用了wait、sleep、阻塞io、请求锁)
+ * 4.WAITING，正在等待其他线程的动作
+ * 5.TIMED_WAITING，正在等待其他线程的动作，带有超时
+ * 6.TERMINATED：最终状态(RUNNING状态调用了stop、BLOCKED状态调用了stop或jvm crash、正常运行结束、异常结束线程)
  * 状态转换见：thread_lifecycle.png
+ * 给定时间内，线程只能处于一个状态。这些状态不能映射到操作系统的线程状态，时JVM使用的状态。
  * <p>
  * sychronized保证多线程访问共享数据的同步性，即先来后到
  * <p>
@@ -46,7 +48,7 @@ public class ThreadTest {
 //        testSleepUseTimeUnit();
 //        testYield();
 
-        testWaitAndSleep();
+//        testWaitAndSleep();
 
 ////        testThis();
 ////        testIsAlive();
@@ -73,6 +75,8 @@ public class ThreadTest {
 ////        testExceptionNotAffectMainThread();
 //
 ////        testWaitNotify1();
+
+        testExit();
     }
 
     //jconsole可以调出空出台，选择thread查看当前有多少线程在执行。本例有main和thread-0，还有其他的守护线程
@@ -267,7 +271,7 @@ public class ThreadTest {
         thread.join();
     }
 
-    //join =================
+    //join =================xx.join,暂停当前线程，直到xx结束唤醒当前线程，由于方法是synchronized，用的是this锁
     //join内部也是调用了wait，监视的对象就是调用xx.join的xx，当前调用线程等待
     //监视对象内部有等待队列，谁监视，若没有获取锁，则进入等待队列
 
@@ -574,6 +578,24 @@ public class ThreadTest {
         target.suspend();
         Thread.sleep(5000);
         target.resume();
+    }
+
+    //实现jvm进程退出。
+    private static void testExit() throws InterruptedException {
+
+        new Thread(()->{
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+//            Runtime.getRuntime().exit(0);
+            System.exit(0);
+        }).start();
+
+
+        TimeUnit.SECONDS.sleep(10000);
     }
 
     private static class GoodSuspend implements Runnable {

@@ -6,6 +6,8 @@ import net.jcip.annotations.*;
  * SimulatedCAS
  * <p/>
  * Simulated CAS operation
+ * <p>
+ * synchronized能保证数据可见性
  *
  * @author Brian Goetz and Tim Peierls
  */
@@ -21,7 +23,7 @@ public class SimulatedCAS {
 
     public synchronized int compareAndSwap(int expectedValue, int newValue) {
         int oldValue = value;
-        if(oldValue == expectedValue) value = newValue;
+        if (oldValue == expectedValue) value = newValue;
         return oldValue;
     }
 

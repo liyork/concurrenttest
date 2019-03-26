@@ -5,7 +5,10 @@ import java.util.concurrent.*;
 /**
  * <p> Description: ScheduledExecutorService 优于timer，线程池比多个timer省资源
  * 内部使用DelayedWorkQueue，组合了PriorityQueue功能
- * 将runnable包装成ScheduledFutureTask，然后从DelayedWorkQueue中取执行完后则+period再放入队列
+ * 执行时将runnable包装成ScheduledFutureTask，线程池的worker获取task时需要从DelayedWorkQueue中获取，
+ * 然后执行的task是ScheduledFutureTask,执行目标方法后+period再放入队列，以此定时重复执行
+ * ScheduledFutureTask的getDelay用于线程池放入队列compareTo和从队列取得take
+ * 一旦任务有异常发生，将导致不会再次放入即不能再次执行，而线程池开的线程通过jstack还是有的
  * <p>
  * 由于DelayedWorkQueue是无长度队列则超时时间没用。
  *
@@ -36,6 +39,8 @@ public class ScheduledExecutorTest {
         }
     }
 
+    //FixedDelay间隔的是上一个任务结束到下一个任务开始
+    //FixedRate间隔的是上一个任务开始到下一个任务开始
     private static void testDiff() {
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
         for (int i = 0; i < 1; i++) {

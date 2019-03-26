@@ -47,6 +47,18 @@ import java.util.concurrent.locks.ReentrantLock;
  * 公平锁上锁时先看状态和队列，都可以则竞争否则直接进入队列
  *
  * 使用lockInterruptibly响应interrupt，内部抛出异常中断。
+ *
+ * locksupport应该不能保证可见性，而是由于内部的state是volatile和操作lock和unlock的happen-before加上的数据可见性，
+ * 无论是成功获取到锁还是成功释放掉锁，都会先读取state变量的值，再进行修改。
+ * 释放锁修改state时之前的任何操作对获取锁操作state之后的都可见
+ * A write volatile happens-before B read volatile happens-before B
+ *
+ * CAS同时具有volatile读和volatile写的内存语义
+ * 编译器不会对volatile读与volatile读后面的任意内存操作重排序；
+ * 编译器不会对volatile写与volatile写前面的任意内存操作重排序。
+ * 组合这两个条件，意味着为了同时实现volatile读和volatile写的内存语义，编译器不能对CAS与CAS前面和后面的任意内存操作重排序。
+ * 底层通过硬件的lock锁定内存与内存失效机制
+ *
  * <br/> Created on 2017/2/4 13:44
  *
  * @author 李超

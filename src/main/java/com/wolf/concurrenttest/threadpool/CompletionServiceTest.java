@@ -5,7 +5,12 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * Description:ExecutorCompletionService持有一组future，可以统一获取，省的自己一个一个放入list中了。
+ * Description: ExecutorCompletionService持有一组future，可以统一获取，
+ * 省的自己一个一个放入list中了。而且不用等所有都执行完再操作future。
+ *
+ * 解耦任务的执行和结果处理
+ *
+ *
  * <br/> Created on 2017/6/25 15:48
  *
  * @author 李超

@@ -3,7 +3,7 @@ package com.wolf.concurrenttest.optimize;
 import net.jcip.annotations.*;
 
 /**
- * CasCounter
+ * MyCasTest
  * <p/>
  * Nonblocking counter using CAS
  *

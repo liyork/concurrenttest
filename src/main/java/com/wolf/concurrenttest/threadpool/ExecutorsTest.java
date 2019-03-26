@@ -317,14 +317,10 @@ public class ExecutorsTest {
         List<Callable<String>> list = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
-            Callable<String> stringCallable = new Callable<String>() {
-                @Override
-                public String call() throws Exception {
-                    return Thread.currentThread().getName() + "a";
-                }
-            };
-            list.add(stringCallable);
+            Callable<String> callable = () -> Thread.currentThread().getName() + "a";
+            list.add(callable);
         }
+        //执行所有，任何异常都会被忽略，阻塞获取直到所有future执行完返回
         List<Future<String>> futures = executorService.invokeAll(list);
         for (Future<String> future : futures) {
             System.out.println(future.get());

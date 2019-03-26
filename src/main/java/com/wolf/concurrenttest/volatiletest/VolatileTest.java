@@ -1,7 +1,10 @@
 package com.wolf.concurrenttest.volatiletest;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <br/> Created on 2017/2/23 8:33
@@ -13,9 +16,12 @@ class VolatileTest {
 
     private volatile int a;
 
-    public static void main(String[] args) {
+    private static volatile Map<String, String> map = new HashMap<>();
+
+    public static void main(String[] args) throws InterruptedException {
 //        volatileTest.test2();
 //        VolatileTest.test3();
+        VolatileTest.test4();
     }
 
     /**
@@ -112,6 +118,29 @@ class VolatileTest {
         System.out.println(volatileTest.a);
 
         executorService.shutdown();
+    }
+
+    //对于直接覆盖的map，不会影响到线程中已经使用的map。这可以用于定时加载数据然后一次性直接覆盖。
+    private static void test4() throws InterruptedException {
+
+        map.put("a", "b");
+
+        new Thread(()->{
+            int size = map.size();
+            System.out.println(Thread.currentThread().getName() + " size:" + size);
+
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println(Thread.currentThread().getName() + " size:" + size);
+        }).start();
+
+        TimeUnit.SECONDS.sleep(1);
+        map = new HashMap<>();
+        System.out.println("111111");
     }
 
     //volatile变量只能保证多个线程之间的操作可见性，但是不能保证多个操作的原子性

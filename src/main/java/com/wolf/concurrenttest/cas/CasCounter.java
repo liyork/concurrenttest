@@ -1,13 +1,12 @@
 package com.wolf.concurrenttest.cas;
 
-import net.jcip.annotations.*;
+import net.jcip.annotations.ThreadSafe;
 
 /**
- * CasCounter
- * <p/>
- * Nonblocking counter using CAS
+ * Description: 封装方法，供外界使用，评比外界使用的门槛
  *
- * @author Brian Goetz and Tim Peierls
+ * @author 李超
+ * @date 2019/02/15
  */
 @ThreadSafe
 public class CasCounter {
@@ -17,11 +16,11 @@ public class CasCounter {
         return value.get();
     }
 
-    public int increment() {
+    public int incrementUntilSuccess() {
         int v;
         do {
             v = value.get();
-        } while(v != value.compareAndSwap(v, v + 1));//很激烈时最好等待一会，最好等待时间不一样,不然容易产生活锁
+        } while (v != value.compareAndSwap(v, v + 1));//很激烈时最好等待一会，最好等待时间不一样,不然容易产生活锁
         return v + 1;
     }
 }
