@@ -1,5 +1,7 @@
 package com.wolf.concurrenttest.tooltest;
 
+import org.junit.Test;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -69,5 +71,42 @@ public class ConcurrentHashMapTest {
         }
 
         return result;
+    }
+
+    //看其他源码还以为ConcurrentHashMap不需要bean实现hashcode和equals了呢。
+    @Test
+    public void testEquals() {
+        ConcurrentHashMap<TestBean,Integer> concurrentHashMap = new ConcurrentHashMap<>();
+        concurrentHashMap.put(new TestBean(1, "a"), 1);
+        concurrentHashMap.put(new TestBean(1, "a"), 1);
+        concurrentHashMap.put(new TestBean(1, "a"), 1);
+
+        System.out.println(concurrentHashMap.size());
+    }
+
+    class TestBean {
+        private int id;
+        private String name;
+
+        public TestBean(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 }
