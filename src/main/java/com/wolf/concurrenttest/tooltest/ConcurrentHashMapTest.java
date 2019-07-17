@@ -74,14 +74,20 @@ public class ConcurrentHashMapTest {
     }
 
     //看其他源码还以为ConcurrentHashMap不需要bean实现hashcode和equals了呢。
+    //用的object的hashcode和equals
     @Test
     public void testEquals() {
         ConcurrentHashMap<TestBean,Integer> concurrentHashMap = new ConcurrentHashMap<>();
-        concurrentHashMap.put(new TestBean(1, "a"), 1);
+        TestBean a1 = new TestBean(1, "a");
+        concurrentHashMap.put(a1, 1);
         concurrentHashMap.put(new TestBean(1, "a"), 1);
         concurrentHashMap.put(new TestBean(1, "a"), 1);
 
         System.out.println(concurrentHashMap.size());
+        Integer a = concurrentHashMap.get(new TestBean(1, "a"));
+        System.out.println(a);
+        Integer a11 = concurrentHashMap.get(a1);
+        System.out.println(a11);
     }
 
     class TestBean {
