@@ -57,6 +57,15 @@ public class ThreadGroupTest {
                 }, "t1");
         thread.start();
 
+        new Thread(//使用默认线程组，即当前线程(main)的线程组
+                () -> {
+                    try {
+                        TimeUnit.SECONDS.sleep(3);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }, "t2").start();
+
         ThreadGroup mainGroup = Thread.currentThread().getThreadGroup();
 
         Thread[] threads = new Thread[mainGroup.activeCount()];
@@ -96,7 +105,7 @@ public class ThreadGroupTest {
     }
 
     @Test
-    public void testMethod() throws InterruptedException {
+    public void testThreadGroupMethod() throws InterruptedException {
 
         //创建5个线程，并入group里面进行管理
         ThreadGroup threadGroup = new ThreadGroup("Searcher");
@@ -213,7 +222,7 @@ public class ThreadGroupTest {
         System.out.println(testGroup2.isDestroyed());
     }
 
-    //线程组之间有parent概念，线程只有关联的线程组。
+    //线程组之间有parent概念，线程只有关联的线程组。根ThreadGroup是system
     @Test
     public void testParent() {
         Thread currentThread = Thread.currentThread();
@@ -227,7 +236,7 @@ public class ThreadGroupTest {
 
         ThreadGroup threadGroup = new ThreadGroup(currentThreadGroup, "new threadgroup");
         System.out.println("add threadgroup after");
-        System.out.println("currentThread().getThreadGroup().activeGroupCount:" + currentThreadGroup.activeGroupCount());
+        System.out.println("currentThread().getThreadGroup().activeGroupCount:" + threadGroup.activeGroupCount());
     }
 
     //若未声明父线程组,则使用当前线程所在线程组作为父。
@@ -248,7 +257,7 @@ public class ThreadGroupTest {
 
         ThreadGroup threadGroup = new ThreadGroup(currentThreadGroup, "new threadgroup");
         System.out.println("add threadgroup after");
-        System.out.println("currentThread().getThreadGroup().activeGroupCount:" + currentThreadGroup.activeGroupCount());
+        System.out.println("currentThread().getThreadGroup().activeGroupCount:" + threadGroup.activeGroupCount());
     }
 
     @Test

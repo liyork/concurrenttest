@@ -76,7 +76,9 @@ public class ThreadTest {
 //
 ////        testWaitNotify1();
 
-        testExit();
+//        testExit();
+
+        testGetAllThread();
     }
 
     //jconsole可以调出空出台，选择thread查看当前有多少线程在执行。本例有main和thread-0，还有其他的守护线程
@@ -583,7 +585,7 @@ public class ThreadTest {
     //实现jvm进程退出。
     private static void testExit() throws InterruptedException {
 
-        new Thread(()->{
+        new Thread(() -> {
             try {
                 TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
@@ -750,6 +752,47 @@ public class ThreadTest {
 
             System.out.println("this:" + this);//当前被调用对象,因为方法属于对象的
             System.out.println("Thread.currentThread():" + Thread.currentThread());//当前执行线程
+        }
+    }
+
+    private static void testGetAllThread() {
+
+        ThreadGroup currentThreadGroup = Thread.currentThread().getThreadGroup();
+        System.out.println("currentThreadGroup:" + currentThreadGroup);
+        ThreadGroup abc = new ThreadGroup("abc");
+        new Thread(abc, () -> {//使用abc线程组
+            try {
+                Thread.sleep(200000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, "aaaa").start();
+
+        new Thread(() -> {//使用当前线程(main)的线程组
+            try {
+                Thread.sleep(200000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, "bbbb").start();
+
+        ThreadGroup topGroup = currentThreadGroup;
+        while (currentThreadGroup != null) {
+            topGroup = currentThreadGroup;
+            currentThreadGroup = currentThreadGroup.getParent();
+        }
+
+        System.out.println("topGroupName:" + topGroup.getName());//system
+        int estimatedSize = topGroup.activeCount();
+        Thread[] allThread = new Thread[estimatedSize];
+
+        int actualSize = topGroup.enumerate(allThread);
+
+        Thread[] list = new Thread[actualSize];
+        System.arraycopy(allThread, 0, list, 0, actualSize);
+        System.out.println("Thread list size == " + list.length);
+        for (Thread thread : list) {
+            System.out.println(thread.getName());
         }
     }
 }
