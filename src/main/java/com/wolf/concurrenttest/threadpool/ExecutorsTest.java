@@ -5,6 +5,7 @@ import com.wolf.concurrenttest.cache.LaunderThrowable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * shutdown 和shutdownnow区别
@@ -36,14 +37,14 @@ public class ExecutorsTest {
 //        testAwaitTerminationUse();
 //        testFeatureSimple();
 //        testFeatureAlwaysWait();
-//        testFeatureWaitTimeOut();
+        testFeatureWaitTimeOut();
 //        testFixedThreadPool();
 //        testCachedThreadPool();
 //        testMultiFuture();
 //        testThreadFactory();
 //        testCustomThreadPool();
 //        testMonitor();
-        testException();
+//        testException();
     }
 
     /**
@@ -235,12 +236,19 @@ public class ExecutorsTest {
      * @throws Exception
      */
     private static void testFeatureWaitTimeOut() {
-        final ExecutorService executorService = Executors.newFixedThreadPool(22);
+        final ExecutorService executorService = Executors.newFixedThreadPool(3, new ThreadFactory() {
+            AtomicInteger count = new AtomicInteger();
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "test-"+count.incrementAndGet());
+            }
+        });
+
         Future<?> submit = executorService.submit(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 System.out.println("111");
-                Thread.sleep(10 * 1000);
+                Thread.sleep(6 * 1000);
                 return "ABC";
             }
         });
@@ -252,6 +260,7 @@ public class ExecutorsTest {
             Object o = submit.get(3L, TimeUnit.SECONDS);//内部抛出TimeoutException
             System.out.println(o);
         } catch (TimeoutException e) {
+            e.printStackTrace();
             // task will be cancelled below
         } catch (ExecutionException e) {
             // exception thrown in task; rethrow
@@ -260,10 +269,44 @@ public class ExecutorsTest {
             e.printStackTrace();
         } finally {
             // Harmless if task already completed
-            submit.cancel(true); // interrupt if running
+            boolean cancel = submit.cancel(true);// interrupt if running  注释掉则原线程继续执行
+            System.out.println("cancel:"+cancel);
         }
 
         executorService.shutdown();
+    }
+
+    //超时了，是否继续执行
+    //若是超时，则调用线程get返回超时，但是执行线程还是会继续，若是执行了cancel(true)就不会执行了，因为内部是worker包含thread，这个
+    //会被cancel进行interrupt
+    private static void testTimeOutIfContinueRun() {
+        final ExecutorService executorService = Executors.newFixedThreadPool(3, new ThreadFactory() {
+            AtomicInteger count = new AtomicInteger();
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "test-"+count.incrementAndGet());
+            }
+        });
+
+        Future<?> submit = executorService.submit(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                System.out.println("111");
+                Thread.sleep(6 * 1000);
+                System.out.println("2222");
+                return "ABC";
+            }
+        });
+
+        try {
+            Object o = submit.get(3L, TimeUnit.SECONDS);//内部抛出TimeoutException
+            System.out.println(o);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            boolean cancel = submit.cancel(true);//注释掉则原线程继续执行
+            System.out.println("cancel:"+cancel);
+        }
     }
 
     //内部用LinkedBlockingQueue

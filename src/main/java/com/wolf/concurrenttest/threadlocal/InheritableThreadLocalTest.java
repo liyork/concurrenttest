@@ -5,10 +5,10 @@ import org.junit.Test;
 /**
  * Description:
  * 解决当前线程创建新线程但是threadlocal想继续传递的问题
- *
+ * <p>
  * 调用new Thread的start方法是当前线程执行的，所以里面的this就是当前线程调用的thread的start方法
  * 这时jvm底层会启动一个线程执行thread对象的run方法，this还是thread，不过线程变了，然后run方法调用runnalble的run方法。
- *
+ * <p>
  * new Thread()时，会按照当前线程的inheritableThreadLocals创建一个新map放入新线程的inheritableThreadLocals。
  * <br/> Created on 2016/8/10 8:30
  *
@@ -19,19 +19,19 @@ public class InheritableThreadLocalTest {
 
     //静态对象只有一个！！！
 //    private static ThreadLocal<String> local = new ThreadLocal<String>() {
-        	private static ThreadLocal<String> local = new InheritableThreadLocal<String>() {
-//		//只有第一次直接get时会触发，如果先设定了再get就永远不会触发了
+    private static ThreadLocal<String> local = new InheritableThreadLocal<String>() {
+        //只有第一次直接get时会触发，如果先设定了再get就永远不会触发了
         @Override
         protected String initialValue() {
-            System.out.println("initialValue this:"+this.getClass());
-            System.out.println(Thread.currentThread().getName()+":initial");
+            System.out.println("initialValue this:" + this.getClass());
+            System.out.println(Thread.currentThread().getName() + ":initial");
             return "xxxx";
         }
 
         //构造新线程时会触发这个设定子线程的值
         @Override
         protected String childValue(String parentValue) {
-            return parentValue+":zzz";
+            return parentValue + ":zzz";
         }
     };
 
@@ -41,9 +41,8 @@ public class InheritableThreadLocalTest {
     }
 
 
-
     private void testSubThread() throws InterruptedException {
-        System.out.println("testSubThread this:"+this.getClass());//应用创建的对象
+        System.out.println("testSubThread this:" + this.getClass());//应用创建的对象
         String s1 = InheritableThreadLocalTest.local.get();//初始化时设定inheritableThreadLocals
         System.out.println("parent first get===>" + s1);
 
@@ -88,16 +87,18 @@ public class InheritableThreadLocalTest {
 
     }
 
+    //this标识当前方法所在对象。匿名内部类中的方法调用this同样隶属于匿名内部类对象
     @Test
-    public void testAnonymousInnerClassName(){
-        new TestThis(){
+    public void testAnonymousInnerClassName() {
+        new TestThis() {
             @Override
             public void initial() {
                 super.initial();
-                System.out.println("initial this:"+this.getClass());//匿名内部类InheritableThreadLocalTest$3@71dac704,都是在InheritableThreadLocalTest里面
+                System.out.println("initial this:" + this.getClass());//匿名内部类InheritableThreadLocalTest$3@71dac704
             }
         }.get();
 
-        new TestThis().get();//this:TestThis@41a4555e
+        new TestThis().get();//com.wolf.concurrenttest.threadlocal.TestThis
     }
+
 }

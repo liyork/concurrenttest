@@ -5,9 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Description:
- * fork/join框架，从一个任务开始，内部将分割成多个子任务，之后再一次次分割，直到问题达到想要的规模。拆分之后执行子任务并等待，然后一层层返回，
- * 也可以进行取消。
- *
+ * fork/join框架的目的是以递归方式将可以并行的任务拆分成更小的任务，然后将每个子任务的结果合并起来生成整体结果。
+ * <p>
  * Fork/Join 框架还有另一个关键特性，即工作窃取算法。该算法确定要执行的任务。当一个任务使用 join()方法等待
  * 某个子任务结束时，执行该任务的线程将会从任务池中选取另一个等待执行的任务并且开始执行。通过这种方式，Fork/Join 执
  * 行器的线程总是通过改进应用程序的性能来执行任务
@@ -18,9 +17,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 不能在任务内部抛出校验异常，必须编写代码来处理异常（例如，陷入未经校验的RuntimeException）
  * <p>
  * RecursiveTask有返回值，RecursiveAction无返回值
- *
+ * <p>
  * 分治设计。基于fork创建一个新子任务，基于join操作在获取结果前等待子任务结束。
  * <p>
+ * 最佳实践：
+ * join需要让其他前提任务先执行，因为join会阻塞调用join的线程。
+ * invoke是串行，不要在RecursiveTask中使用，内部应该使用fork或compute
+ * 可以像violin中的ParallelStreamTest.CalculateSum那样，compute内不用开启两个fork，右边重用当前线程，减少开销。
+ * 一个任务可以分解成多个独立的子任务，才能让性能在并行化时有所提升。所有这些子任务的运行时间都应该比分出新任务所花的时间长
+ * 把输入/输出放在一个子任务里，计算放在另一个里，计算和输入/输出同时进行。
+ * 测量性能之前跑几遍程序很重要，先预热一下jvm才会被JIT编译器优化
+ * <p>
+ * fork/join框架工程用一种称为工作窃取（ work stealing）的技术来解决划分任务不均匀或者执行时间不相等的问题。
+ * 用于在池中的工作线程之间重新分配和平衡任务
  * <br/> Created on 12/03/2018 8:19 AM
  *
  * @author 李超
@@ -28,15 +37,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ForkJoinTest {
 
+    //forkJoinPool建议jvm内用一个
+    static ForkJoinPool forkJoinPool = new ForkJoinPool();
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-//        testBase();
+        testBase();
 //        testStep();
-        testPending();
+//        testPending();
     }
 
     private static void testBase() throws InterruptedException, ExecutionException {
 
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
         CountTask countTask = new CountTask(1, 4);
         ForkJoinTask<Integer> result = forkJoinPool.submit(countTask);
 
@@ -73,7 +84,8 @@ public class ForkJoinTest {
             System.out.println(Thread.currentThread().getName() + " start:" + start + " end" + end);
             int sum = 0;
 
-            if (end - start < THRESHOLD) {//只计算两个数
+            int length = end - start;
+            if (length < THRESHOLD) {//只计算两个数
                 for (int i = start; i <= end; i++) {
                     sum += i;
                     //throw new RuntimeException("test for join thread exception");
