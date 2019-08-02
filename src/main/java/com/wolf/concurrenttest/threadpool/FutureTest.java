@@ -3,7 +3,8 @@ package com.wolf.concurrenttest.threadpool;
 import java.util.concurrent.*;
 
 /**
- * <p> Description:future可实现超时，可被打断.
+ * <p> Description:用于实现异步契约
+ * future可实现超时，可被打断.
  * Callable只是用来被调用的,submit时会被封装成FutureTask，(Runnable, Future)可运行可获取，
  * <p/>
  * Date: 2016/6/23
@@ -41,11 +42,11 @@ public class FutureTest {
             // 等待计算结果，最长等待timeout秒，timeout秒后中止任务
             taskResult = future.get(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            failReason = "InterruptedException";
+            failReason = "InterruptedException";//当前线程在等待过程中被中断
         } catch (ExecutionException e) {
-            failReason = "ExecutionException";
+            failReason = "ExecutionException";//计算抛出一个异常
         } catch (TimeoutException e) {
-            failReason = "TimeoutException";
+            failReason = "TimeoutException";//在Future对象完成之前已过期
             exec.shutdownNow();
         }
 
@@ -131,7 +132,7 @@ public class FutureTest {
         Future<?> future = exec.submit(runnable);
         Object o = null;
         try {
-            o = future.get(3000,TimeUnit.MILLISECONDS);
+            o = future.get(3000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
