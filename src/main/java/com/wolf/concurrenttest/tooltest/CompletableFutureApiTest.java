@@ -56,11 +56,11 @@ public class CompletableFutureApiTest {
     public void testAnd() {
 
         CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> "aaaa")
-                .thenAccept(s -> TimeUtils.sleep(2))
+                .thenAccept(s -> TimeUtils.sleepSecond(2))
                 .thenApply(s -> 1);
 
         CompletableFuture<String> future3 = CompletableFuture.supplyAsync(() -> "bbb")
-                .thenAccept(s -> TimeUtils.sleep(3))
+                .thenAccept(s -> TimeUtils.sleepSecond(3))
                 .thenApply(s -> "z1");
 
         //1,2都执行完后才能执行fn
@@ -75,12 +75,12 @@ public class CompletableFutureApiTest {
     public void testOr() {
 
         CompletableFuture<Integer> future1 = CompletableFuture.supplyAsync(() -> {
-            TimeUtils.sleep(10);
+            TimeUtils.sleepSecond(10);
             return 1;
         });
 
         CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> {
-            TimeUtils.sleep(2);
+            TimeUtils.sleepSecond(2);
             return 2;
         });
 
@@ -111,7 +111,7 @@ public class CompletableFutureApiTest {
     private void printEach(int i2, String s) {
         IntStream.rangeClosed(1, i2)
                 .forEach(i -> {
-                    TimeUtils.sleep(1);
+                    TimeUtils.sleepSecond(1);
 
                     System.out.println(s + i);
                 });
