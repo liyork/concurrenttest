@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Description: 拒绝策略
+ * 执行线程不够时，队列满了，小心使用"直接使用用户的线程"执行任务，这个策略。
  *
  * @author 李超
  * @date 2019/02/21
