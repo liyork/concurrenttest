@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 /**
  * Description:使用标记解决cas的aba问题
  *
- * 这里就违背了顺序性，所以多个线程并行操作一个变量，就会产生+10再-10的情景。而有stamp与也业务无关的保证cas即保证了顺序性。
+ * 这里就违背了顺序性，所以多个线程并行操作一个变量，就会产生+10再-10的情景。而有stamp与业务无关的保证cas即保证了顺序性。
  * <br/> Created on 3/6/18 9:42 AM
  *
  * @author 李超

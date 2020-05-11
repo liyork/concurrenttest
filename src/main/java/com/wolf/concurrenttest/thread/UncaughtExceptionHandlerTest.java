@@ -23,7 +23,7 @@ public class UncaughtExceptionHandlerTest {
     //defaultUncaughtExceptionHandler是静态属性，所以设定后全局有效
     public static void testDefaultUncaughtExceptionHandler() {
 
-        MyThread.setDefaultUncaughtExceptionHandler(
+        Thread.setDefaultUncaughtExceptionHandler(
                 (t, e) -> {
                     System.out.println(t.getName() + "_message:" + e.getMessage());
                     e.printStackTrace();

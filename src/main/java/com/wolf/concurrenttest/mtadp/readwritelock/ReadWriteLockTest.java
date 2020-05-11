@@ -1,7 +1,7 @@
 package com.wolf.concurrenttest.mtadp.readwritelock;
 
 /**
- * Description:
+ * Description: 读读不互斥，写和任何都互斥
  *
  * @author 李超
  * @date 2019/02/01

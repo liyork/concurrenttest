@@ -46,14 +46,14 @@ public class ThreadTest {
 
 //        testDaemon();
 //        testSleepUseTimeUnit();
-//        testYield();
+        testYield();
 
 //        testWaitAndSleep();
 
 ////        testThis();
 ////        testIsAlive();
 //
-////        testJoin1();
+//        testJoin1();
 ////        testJoin2();
 //        testSimulateCountDownLatch();
 ////        testWaitShouldInSynScope();
@@ -78,7 +78,7 @@ public class ThreadTest {
 
 //        testExit();
 
-        testGetAllThread();
+//        testGetAllThread();
     }
 
     //jconsole可以调出空出台，选择thread查看当前有多少线程在执行。本例有main和thread-0，还有其他的守护线程
@@ -216,25 +216,41 @@ public class ThreadTest {
 
     //提醒(hint)调度器自己愿意放弃当前CPU资源，如果CPU资源不紧张，则会忽略这种提醒。(RUNNING->RUNNABLE)
     //至少一种暗示并不一定能响应。
-    private static void testYield() {
+    //不释放锁
+    private static void testYield() throws InterruptedException {
 
         ExecutorService exec = Executors.newFixedThreadPool(2);
 
         Runnable add = () -> {
-            for (int i = 0; i < 30; i++) {
-                System.out.println(Thread.currentThread().getName() + "test yield " + i);
-                //让出当前线程，与其他线程一起竞争CPU
-                Thread.yield();
+            synchronized (ThreadTest.class) {
+                for (int i = 0; i < 30; i++) {
+                    System.out.println(Thread.currentThread().getName() + "test yield " + i);
+                    //让出当前线程，与其他线程一起竞争CPU
+                    Thread.yield();
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         };
 
         Runnable add1 = () -> {
-            for (int i = 0; i < 30; i++) {
-                System.out.println(Thread.currentThread().getName() + "not yield " + i);
+            synchronized (ThreadTest.class) {
+                for (int i = 0; i < 30; i++) {
+                    System.out.println(Thread.currentThread().getName() + "not yield " + i);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         };
 
         exec.submit(add);
+        Thread.sleep(1000);
         exec.submit(add1);
 
         exec.shutdown();
@@ -273,7 +289,7 @@ public class ThreadTest {
         thread.join();
     }
 
-    //join =================xx.join,暂停当前线程，直到xx结束唤醒当前线程，由于方法是synchronized，用的是this锁
+    //xx.join,暂停当前线程，直到xx结束后唤醒当前线程，由于方法是synchronized，用的是this锁
     //join内部也是调用了wait，监视的对象就是调用xx.join的xx，当前调用线程等待
     //监视对象内部有等待队列，谁监视，若没有获取锁，则进入等待队列
 
@@ -281,17 +297,24 @@ public class ThreadTest {
         System.out.println("before testJoin...");
 
         final Thread subThread = new Thread(() -> {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 5; i++) {
                 System.out.println(i);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }, "threadname");
 
         subThread.start();
 
-        subThread.join();//主线程调用thread对象的wait进入thread对象的等待队列,是个同步方法。
-        // 当subThread线程执行完后(或非正常死亡时抛出InterruptedException)自动调用notifyall，
+        //主线程调用thread对象的wait进入thread对象的等待队列,是个同步方法。
+        // 当subThread线程执行完后或非正常死亡时抛出InterruptedException，自动调用notifyall，
         // 所以join中判断thread是否存活，然后跳出来。
-//        subThread.join(10000);带超时时间
+//        subThread.join();
+
+        subThread.join(1000);//带超时时间，进入wait，被唤醒或者等待时间到达则线程进入就绪状态
 
         System.out.println("main stop ");
     }
