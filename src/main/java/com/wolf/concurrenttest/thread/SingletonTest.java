@@ -42,7 +42,7 @@ public class SingletonTest implements Serializable {
         //与锁和volatile相比较，对final域的读和写更像是普通的变量访问。对于final域，编译器和处理器要遵守两个重排序规则：
         //1. 在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序。
         // new Object() 和 Object a = 必须禁止重排序，构造之间有人用对象属性就是空，但是final字段是构造之后必须有值的
-        //2. 初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序???
+        //2. 初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序(要先引用外面对象--这可能就触发static了之后才能使用里面的final域)
         private final static SingletonTest instance = new SingletonTest();
     }
 
