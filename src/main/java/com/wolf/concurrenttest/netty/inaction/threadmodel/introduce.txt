@@ -1,0 +1,2 @@
+What won t change is the fact that only one thread will operate on the I/O of a specific channel at the same time.
+
