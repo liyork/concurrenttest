@@ -3,6 +3,7 @@ package com.wolf.concurrenttest.netty.inaction;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
@@ -13,7 +14,7 @@ import java.util.*;
 /**
  * Description:相比较nio使用position，通过两个位置指针操作，互不影响
  * 在写入时检查容量，需要时动态扩容
- * 堆内存的bytebuffer进行socket的io操作时需要将内存复制到内核的channel中。对外内存bytebuffer就不需要拷贝
+ * 堆内存的bytebuffer进行socket的io操作时需要将内存复制到内核的channel中。堆外内存bytebuffer就不需要拷贝
  * 最佳实践：io通信线程的读写缓冲区用directbytebuf，后端业务消息编解码使用heapbytebuf
  * 基于对象池的bytebuf可以循环利用，提升内存的使用效率，降低由于高负载、大并发导致的频繁gc。
  * <p>
@@ -44,10 +45,10 @@ public class ByteBufTest {
             int length = byteBuf.readableBytes();
             System.out.println(offset + " " + length + " " + array.length);
 
-//            for (int i = 0; i < length; i++) {
-//                System.out.println((char) byteBuf.getByte(i));//does not modify readerIndex or writerIndex of this buffer.
-//            }
-            System.out.println(byteBuf.getInt(0) + " " + byteBuf.getInt(4) + " " + byteBuf.getInt(8));//does not modify readerIndex or writerIndex of this buffer.
+            //for (int i = 0; i < length; i++) {
+            //    System.out.println((char) byteBuf.getByte(i));//does not modify readerIndex or writerIndex of this buffer.
+            //}
+            System.out.println(byteBuf.getInt(0) + " " + byteBuf.getInt(4) + " " + byteBuf.getInt(8));
         }
         return byteBuf;
     }
@@ -73,7 +74,6 @@ public class ByteBufTest {
 
     @Test
     public void testCompositeBuf() {
-        // CompositeByteBuf
         CompositeByteBuf byteBuf = Unpooled.compositeBuffer();
         byteBuf.addComponent(getHeapBuf());
         byteBuf.addComponent(getDirectBuf());
@@ -83,7 +83,6 @@ public class ByteBufTest {
             Object o = it.next();
             System.out.println(o);
         }
-
     }
 
     //if you need to free up memory as soon as possible.Such an operation isn t free and may affect performance
@@ -93,11 +92,10 @@ public class ByteBufTest {
     @Test
     public void testDiscardReadBytes() throws UnsupportedEncodingException {
         ByteBuf byteBuf = Unpooled.buffer();
-        byteBuf.writeInt(1);
-        byteBuf.writeInt(2);
-        byteBuf.writeInt(3);
-        byteBuf.writeInt(4);
-
+        byteBuf.writeInt(11);
+        byteBuf.writeInt(22);
+        byteBuf.writeInt(33);
+        byteBuf.writeInt(44);
 
         System.out.println(byteBuf.readInt());
         System.out.println(byteBuf.readInt());
@@ -118,7 +116,6 @@ public class ByteBufTest {
         byteBuf.writeInt(3);
         byteBuf.writeInt(4);
 
-
         System.out.println(byteBuf.readInt());
         System.out.println(byteBuf.readInt());
 
@@ -136,7 +133,6 @@ public class ByteBufTest {
         byteBuf.writeInt(2);
         byteBuf.writeInt(3);
         byteBuf.writeInt(4);
-
 
         System.out.println(byteBuf.readInt());
         System.out.println(byteBuf.readInt());
@@ -160,7 +156,6 @@ public class ByteBufTest {
         byteBuf.setInt(0, 3);
 
         System.out.println(byteBuf.readerIndex() + " " + byteBuf.writerIndex());
-
     }
 
     //read、write移动index
@@ -171,12 +166,14 @@ public class ByteBufTest {
         while (byteBuf.writableBytes() >= 4) {
             byteBuf.writeInt(random.nextInt(10));
         }
+        byteBuf.writeInt(44);// 可自动扩容，不过涉及数据拷贝
 
         while (byteBuf.isReadable()) {
             System.out.println(byteBuf.readInt());
         }
     }
 
+    // 定位元素
     @Test
     public void testByteBefore() throws UnsupportedEncodingException {
         ByteBuf byteBuf = Unpooled.buffer();
@@ -192,9 +189,8 @@ public class ByteBufTest {
         int i1 = byteBuf.indexOf(0, byteBuf.capacity(), (byte) 3);
         System.out.println(i1);
         System.out.println(byteBuf.arrayOffset() + " " + byteBuf.readerIndex() + " " + byteBuf.writerIndex());
-        int i = byteBuf.bytesBefore((byte) 3);//相对于readerindex的位置
+        int i = byteBuf.bytesBefore((byte) 3);// 从readerindex的位置开始计算查找3
         System.out.println(i);
-
 
         System.out.println(byteBuf.arrayOffset() + " " + byteBuf.readerIndex() + " " + byteBuf.writerIndex());
     }
@@ -202,14 +198,16 @@ public class ByteBufTest {
     // 底层引用一个，create a view of an existing buffer
     @Test
     public void testSlice() throws UnsupportedEncodingException {
-        // 0~22
-        ByteBuf byteBuf = Unpooled.copiedBuffer("Netty in action rocks!", charset);
+        String str = "Netty in action rocks!";
+        System.out.println(str.length());// 22
+        ByteBuf byteBuf = Unpooled.copiedBuffer(str, charset);
+        System.out.println(byteBuf);// 0, 22 ,66
         ByteBuf slice = byteBuf.slice(0, 14);
         System.out.println(slice.toString(charset));
 
         slice.setByte(0, 'J');
-        System.out.println(slice.getByte(0));
-        System.out.println(slice.getByte(0) == byteBuf.getByte(0));
+        System.out.println((char) slice.getByte(0));
+        System.out.println(slice.getByte(0) == byteBuf.getByte(0));// 都变了
     }
 
     //两个对象,修改之一互不影响
@@ -230,17 +228,29 @@ public class ByteBufTest {
 
         ByteBuf content = byteBufHolder.content();
         System.out.println(content);
-
     }
 
     @Test
     public void testByteBufAllocator() throws UnsupportedEncodingException {
-//        Channel channel = ...;
-//        ByteBufAllocator allocator = channel.alloc();                            #1
-//
-//        ChannelHandlerContext ctx = ...;
-//        ByteBufAllocator allocator2 = ctx.alloc();
+        PooledByteBufAllocator pooledByteBufAllocator = new PooledByteBufAllocator();
+        ByteBuf b1 = pooledByteBufAllocator.buffer();
+        ByteBuf b2 = pooledByteBufAllocator.directBuffer();
+        System.out.println(b1 + "__" + b2);
+        UnpooledByteBufAllocator unpooledByteBufAllocator = new UnpooledByteBufAllocator(true);
+        ByteBuf b3 = unpooledByteBufAllocator.buffer();
+        ByteBuf b4 = unpooledByteBufAllocator.directBuffer();
+        System.out.println(b3 + "__" + b4);
 
+
+        Channel channel = new NioSocketChannel();
+        ByteBufAllocator allocator = channel.alloc();
+        System.out.println(allocator);
+
+        ChannelPipeline pipeline = channel.pipeline();
+        pipeline.addLast(new DiscardOutboundHandler());
+        ChannelHandlerContext ctx = pipeline.context("DiscardOutboundHandler#0");
+        ByteBufAllocator allocator2 = ctx.alloc();
+        System.out.println(allocator2);
     }
 
     @Test
@@ -253,22 +263,33 @@ public class ByteBufTest {
     @Test
     public void testChannelPipeline() throws UnsupportedEncodingException {
         Channel channel = new NioServerSocketChannel();
-        ChannelPipeline pipeline = channel.pipeline();//DefaultChannelPipeline伴随channel而创建
+        ChannelPipeline pipeline = channel.pipeline();// DefaultChannelPipeline伴随channel而创建
 
         ChannelHandler channelHandler = new SimpleChannelInboundHandler<String>() {
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-
+            }
+        };
+        ChannelHandler channelHandler2 = new SimpleChannelInboundHandler<String>() {
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
             }
         };
         pipeline.addFirst(channelHandler);
-        pipeline.addLast(channelHandler);
+        pipeline.addLast(channelHandler2);
 
         pipeline.get("xx");
 
         ChannelHandlerContext context = pipeline.context(channelHandler);
+        System.out.println("context:" + context);
+
         List<String> names = pipeline.names();
+        System.out.println("names:" + names);
+
         Iterator<Map.Entry<String, ChannelHandler>> iterator = pipeline.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
 
         pipeline.fireChannelRegistered();//invoke next
     }
@@ -280,7 +301,7 @@ public class ByteBufTest {
         Channel channel = ctx.channel();
         ByteBuf bytebuf = Unpooled.copiedBuffer("xxxx", charset);
         channel.write(bytebuf);
-        //相同结果
+        // 与上面的操作相同
         ChannelPipeline pipeline = ctx.pipeline();
         pipeline.write(bytebuf);
 
@@ -289,7 +310,7 @@ public class ByteBufTest {
         ChannelHandlerContext context = pipeline.context("appointhandlername");
         context.write(bytebuf);
 
-        //handler可以被多个pipeline使用，如果是那样小心线程问题
+        //一个handler可以被多个pipeline使用，如果是那样小心线程问题
     }
 
     //ChannelHandlerAdapter is Skelton implementation of a {@link ChannelHandler}
@@ -307,7 +328,6 @@ public class ByteBufTest {
     //先翻倍再步进
     @Test
     public void testNewCapacity() throws Exception {
-
         Random random = new Random();
         int threshold = 4;
 //        for (int i = 0; i < 100; i++) {
@@ -350,20 +370,24 @@ public class ByteBufTest {
         byteBuf.writeInt(2);
         byteBuf.writeInt(3);
 
+        System.out.println(byteBuf.refCnt());
+
         // Decreases the reference count by 1 and deallocates this object if the reference count reaches at 0
         // getAndAdd(-1),返回0则true
         boolean release = byteBuf.release();
         System.out.println(release);
+        System.out.println(byteBuf.refCnt());
 
         release = byteBuf.release();
         System.out.println(release);
+        System.out.println(byteBuf.refCnt());
 
         System.out.println(byteBuf.readerIndex() + " " + byteBuf.writerIndex());
         byteBuf.readInt();//异常IllegalReferenceCountException: refCnt: 0s,被释放成0后就不能再用了
     }
 
     @Test
-    public void testConver2NioBuffer() throws Exception {
+    public void testConvert2NioBuffer() throws Exception {
         ByteBuf byteBuf = Unpooled.buffer(2);
 
         byteBuf.writeInt(2);
@@ -378,7 +402,6 @@ public class ByteBufTest {
         System.out.println(byteBuffer.position() + " " + byteBuffer.limit());
     }
 
-
     @Test
     public void testSimpleUse() {
         ByteBuf buf = Unpooled.buffer(10);
@@ -387,40 +410,40 @@ public class ByteBufTest {
 
         byte[] bytes = {1, 2, 3, 4, 5};
         buf.writeBytes(bytes);
-        System.out.println("写入内容后buf.toString===========>" + buf.toString());
+        System.out.println("写入内容后buf.toString===========>" + buf);
         System.out.println("ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
 
         byte b1 = buf.readByte();
         byte b2 = buf.readByte();
         System.out.println("读取的bytes为====================>" + Arrays.toString(new byte[]{b1, b2}));
-        System.out.println("读取一段内容后buf.toString===========>" + buf.toString());
+        System.out.println("读取一段内容后buf.toString===========>" + buf);
         System.out.println("ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
 
         buf.discardReadBytes();
-        System.out.println("将读取的内容丢弃后buf.toString========>" + buf.toString());// 未读的不被丢弃
+        System.out.println("将读取的内容丢弃后buf.toString========>" + buf);// 未读的不被丢弃
         System.out.println("ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
 
         // 只清指针
         buf.clear();
-        System.out.println("clear后buf.toString==========>" + buf.toString());
+        System.out.println("clear后buf.toString==========>" + buf);
         System.out.println("ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
 
         byte[] bytes2 = {1, 2, 3};
         buf.writeBytes(bytes2);
         System.out.println("再写入的bytes====================>" + Arrays.toString(bytes2));
-        System.out.println("写入一段内容后buf.toString===========>" + buf.toString());
+        System.out.println("写入一段内容后buf.toString===========>" + buf);
         System.out.println("ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
 
         // 从index位置清理len数据为0,ridx,widx不变
         buf.setZero(0, buf.capacity());
-        System.out.println("将内容清零后buf.toString==============>" + buf.toString());
+        System.out.println("将内容清零后buf.toString==============>" + buf);
         System.out.println("ByteBuf中的内容为================>" + Arrays.toString(buf.array()) + "\n");
 
         // 扩容
         byte[] bytes3 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        buf.writeBytes(bytes3);
+        buf.writeBytes(bytes3);// 从widx开始写入
         System.out.println("再写入的bytes为====================>" + Arrays.toString(bytes3));
-        System.out.println("写入一段内容后buf.toString===========>" + buf.toString());
+        System.out.println("写入一段内容后buf.toString===========>" + buf);
         System.out.println("8.ByteBuf中的内容为===============>" + Arrays.toString(buf.array()) + "\n");
     }
 }

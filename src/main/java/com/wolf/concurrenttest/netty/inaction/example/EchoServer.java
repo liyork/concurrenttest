@@ -23,7 +23,7 @@ public class EchoServer {
     private int port = 65535;
 
     public void start() throws Exception {
-        //EventLoopGroup包含一组专门用于处理网络时间的NIO线程组
+        //EventLoopGroup包含一组专门用于处理网络操作的NIO线程组
         EventLoopGroup group = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -35,8 +35,7 @@ public class EchoServer {
                     //The ChannelInitializer is mainly used to set up the ChannelPipeline for each Channel that is created.
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel ch)
-                                throws Exception {
+                        protected void initChannel(SocketChannel ch) throws Exception {
                             System.out.println("connected...; Client:" + ch.remoteAddress());
                             ch.pipeline().addLast(new EchoServerHandler());
                         }

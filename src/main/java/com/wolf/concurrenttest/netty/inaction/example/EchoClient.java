@@ -21,8 +21,8 @@ import java.net.InetSocketAddress;
 public class EchoClient {
 
     public void start() throws Exception {
-//        testBaseUsage();
-        testMultiConnection();
+        testBaseUsage();
+        //testMultiConnection();
     }
 
     private void testBaseUsage() throws InterruptedException {
@@ -43,7 +43,8 @@ public class EchoClient {
             System.out.println("111");
             ChannelFuture f = b.connect().sync();
             System.out.println("222");
-            f.channel().closeFuture().sync();
+            f.channel().closeFuture()// channel关闭时会触发
+                    .sync();// 等待channel关闭
             System.out.println("333");
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,40 +70,33 @@ public class EchoClient {
                         }
                     });
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println("111");
-                    ChannelFuture f = null;
-                    try {
-                        f = b.connect(new InetSocketAddress("127.0.0.1", 65534)).sync();
-                        System.out.println("222");
-                        f.channel().closeFuture().sync();
-                        System.out.println("333");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
+            new Thread(() -> {
+                System.out.println("111");
+                ChannelFuture f = null;
+                try {
+                    f = b.connect(new InetSocketAddress("127.0.0.1", 65534)).sync();
+                    System.out.println("222");
+                    f.channel().closeFuture().sync();
+                    System.out.println("333");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+
             }).start();
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    System.out.println("111");
-                    ChannelFuture f = null;
-                    try {
-                        f = b.connect(new InetSocketAddress("127.0.0.1", 65535)).sync();
-                        System.out.println("222");
-                        f.channel().closeFuture().sync();
-                        System.out.println("333");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
+            new Thread(() -> {
+                System.out.println("111");
+                ChannelFuture f = null;
+                try {
+                    f = b.connect(new InetSocketAddress("127.0.0.1", 65535)).sync();
+                    System.out.println("222");
+                    f.channel().closeFuture().sync();
+                    System.out.println("333");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            }).start();
 
+            }).start();
 
             Thread.sleep(5000);
             //上面若不加,是由于finally中关闭了线程池。。
@@ -122,6 +116,4 @@ public class EchoClient {
     public static void main(String[] args) throws Exception {
         new EchoClient().start();
     }
-
-
 }

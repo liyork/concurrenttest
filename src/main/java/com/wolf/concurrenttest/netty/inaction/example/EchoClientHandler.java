@@ -22,26 +22,25 @@ public class EchoClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("EchoClientHandler channelActive");
         ctx.write(Unpooled.copiedBuffer("̀Netty rocks!", CharsetUtil.UTF_8));
-        ctx.flush();//netty in action中没有刷新。。两边也没有日志，以为是卡住了呢。。。
+        ctx.flush();// netty in action中没有刷新。。两边也没有日志，以为是卡住了呢。。。
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx,ByteBuf in) {
+    public void channelRead0(ChannelHandlerContext ctx, ByteBuf in) {
         ByteBuf buffer = in.readBytes(in.readableBytes());
         System.out.println("̀Client received:" + ByteBufUtil.hexDump(buffer));
     }
 
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx,
-                                Throwable cause) {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        this.ctx = ctx;//保留ctx，从线程外也可以使用，因为是线程安全的
+        this.ctx = ctx;// 保留ctx，从线程外也可以使用，因为ctx是线程安全的
         super.handlerAdded(ctx);
     }
 }

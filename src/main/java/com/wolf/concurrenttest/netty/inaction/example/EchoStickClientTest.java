@@ -5,18 +5,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Description:
- * java.io.IOException: Connection reset by peer
+ * Description: 粘包测试
  * <br/> Created on 9/18/17 8:17 PM
  *
  * @author 李超
@@ -35,15 +33,14 @@ public class EchoStickClientTest {
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             System.out.println("EchoClient initChannel... ");
-                            ch.pipeline().addLast(
-                                    new EchoClientHandler());
+                            ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
 
             ChannelFuture f = b.connect(new InetSocketAddress("127.0.0.1", 65535)).sync();
 
             for (int i = 0; i < 1000; i++) {
-                byte[] req = "你好,netty!".getBytes("utf-8");
+                byte[] req = "你好,netty!".getBytes(StandardCharsets.UTF_8);
                 ByteBuf messageBuffer = Unpooled.buffer(req.length);
                 messageBuffer.writeBytes(req);
 
@@ -55,8 +52,6 @@ public class EchoStickClientTest {
             f.channel().closeFuture().sync();
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } finally {
             try {

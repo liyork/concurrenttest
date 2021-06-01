@@ -37,8 +37,7 @@ public class EpollServer {
                         protected void initChannel(SocketChannel ch)
                                 throws Exception {
                             System.out.println("connected...; Client:" + ch.remoteAddress());
-                            ch.pipeline().addLast(
-                                    new EchoServerHandler());
+                            ch.pipeline().addLast(new EchoServerHandler());
                         }
                     });
             Channel ch = b.bind(PORT).sync().channel();

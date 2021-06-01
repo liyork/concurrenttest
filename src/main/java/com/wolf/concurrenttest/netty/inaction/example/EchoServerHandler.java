@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Description:netty4.0版本实现
@@ -23,21 +24,21 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
         byte[] req = new byte[buf.readableBytes()];
         buf.readBytes(req);
 
-        String body = new String(req, "utf-8");
+        String body = new String(req, StandardCharsets.UTF_8);
         System.out.println("Server received: " + body);
 
-        ByteBuf resp = Unpooled.copiedBuffer(body.getBytes("utf-8"));
+        ByteBuf resp = Unpooled.copiedBuffer(body.getBytes(StandardCharsets.UTF_8));
         ctx.write(resp);
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);//刷新完成后关闭
+        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);//刷新完成后关闭channel
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx,
-                                Throwable cause) {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
-    } }
+    }
+}
