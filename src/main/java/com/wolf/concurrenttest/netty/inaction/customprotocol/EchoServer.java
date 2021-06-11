@@ -35,6 +35,7 @@ public class EchoServer {
                         @Override
                         protected void initChannel(SocketChannel ch)
                                 throws Exception {
+                            // 池、堆内存
                             ch.config().setAllocator(PooledByteBufAllocator.DEFAULT);
 
                             System.out.println("connected...; Client:" + ch.remoteAddress());
