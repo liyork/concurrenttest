@@ -3,7 +3,8 @@ package com.wolf.concurrenttest.jjzl.shutdown;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Description: 当前jvm内没有非守护进程时退出
+ * Description: 演示Daemon线程
+ * 当前jvm内没有非守护进程时退出
  * Created on 2021/5/30 8:30 AM
  *
  * @author 李超
@@ -21,7 +22,11 @@ public class DaemonDemo {
         }, "Daemon-T");
         //thread.setDaemon(true);// 默认false，则程序不会退出
         thread.start();
-        TimeUnit.SECONDS.sleep(10);
-        System.out.println("main quit " + (System.nanoTime() - startTime) / 1000 / 1000 / 1000 + " s");
+        TimeUnit.SECONDS.sleep(5);
+        System.out.println("main quit " + nano2Second(startTime) + " s");
+    }
+
+    private static long nano2Second(long startTime) {
+        return (System.nanoTime() - startTime) / 1000 / 1000 / 1000;
     }
 }

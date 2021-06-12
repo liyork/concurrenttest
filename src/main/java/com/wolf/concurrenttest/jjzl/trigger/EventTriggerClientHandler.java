@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// 演示服务端channelRead和channelReadComplete触发时机
+// 配合演示服务端channelRead和channelReadComplete触发时机
 public class EventTriggerClientHandler extends ChannelInboundHandlerAdapter {
     private static AtomicInteger SEQ = new AtomicInteger(10);
     static final String ECHO_REQ = "hi, wellcome to netty ";

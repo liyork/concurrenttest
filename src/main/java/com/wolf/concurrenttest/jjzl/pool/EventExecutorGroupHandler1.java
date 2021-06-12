@@ -39,7 +39,7 @@ public class EventExecutorGroupHandler1 extends ChannelInboundHandlerAdapter {
             counter.incrementAndGet();
             // 模拟耗时操作
             try {
-                TimeUnit.MILLISECONDS.sleep(5000);
+                TimeUnit.MILLISECONDS.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

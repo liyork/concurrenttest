@@ -10,11 +10,11 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         unsafe.doSomething(ctx, msg);
     }
-}
 
-class ThreadUnsafeClass {
-
-    public void doSomething(ChannelHandlerContext ctx, Object msg) {
-        ctx.write(msg);
+    // 不安全类
+    class ThreadUnsafeClass {
+        public void doSomething(ChannelHandlerContext ctx, Object msg) {
+            ctx.write(msg);
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.jjzl.lot;
+package com.wolf.concurrenttest.jjzl.slowthridpart;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,12 +12,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 演示服务端处理不过来请求而阻塞nioEventLoop线程
+ * 系统拥塞时，采用丢弃当前消息或者流控的方式避免问题进一步恶化。
  */
-public class BlockNioEventLoopServerHandler extends ChannelInboundHandlerAdapter {
+public class BlockNioEventLoopServerHandler1 extends ChannelInboundHandlerAdapter {
     static AtomicInteger sum = new AtomicInteger(0);
     static ExecutorService executorService = new ThreadPoolExecutor(1, 3, 30, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(1000), new ThreadPoolExecutor.CallerRunsPolicy());
+            new ArrayBlockingQueue<Runnable>(1000), new ThreadPoolExecutor.AbortPolicy());
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -34,5 +34,11 @@ public class BlockNioEventLoopServerHandler extends ChannelInboundHandlerAdapter
             }
             ctx.writeAndFlush(req);
         });
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }

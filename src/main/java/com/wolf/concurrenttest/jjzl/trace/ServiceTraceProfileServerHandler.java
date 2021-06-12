@@ -2,14 +2,9 @@
 package com.wolf.concurrenttest.jjzl.trace;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.EventExecutor;
-import io.netty.util.concurrent.SingleThreadEventExecutor;
 
-import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +21,7 @@ public class ServiceTraceProfileServerHandler extends ChannelInboundHandlerAdapt
             int readRates = totalReadBytes.getAndSet(0);
             System.out.println(ctx.channel() + "--> read rates " + readRates + " bytes/s");
         }, 0, 1000, TimeUnit.MILLISECONDS);
-        ctx.fireChannelActive();
+        ctx.fireChannelActive();// 继续
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) {

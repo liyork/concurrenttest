@@ -1,5 +1,5 @@
 
-package com.wolf.concurrenttest.jjzl.source;
+package com.wolf.concurrenttest.netty.source;
 
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;

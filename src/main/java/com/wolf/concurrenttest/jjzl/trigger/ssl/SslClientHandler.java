@@ -1,9 +1,7 @@
 
-package com.wolf.concurrenttest.jjzl.http;
+package com.wolf.concurrenttest.jjzl.trigger.ssl;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -17,7 +15,7 @@ public class SslClientHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        if (sum.incrementAndGet() % 3 == 0)
+        if (sum.incrementAndGet() % 3 == 0)// 每三次连接成功则关闭连接
             ctx.close();
     }
 

@@ -10,11 +10,11 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 /**
  * 测试业务handler是否线程安全
  */
-public final class ClientServer {
+public final class SafeTestClient {
 
     public static void main(String[] args) throws Exception {
-        multiInsSafe();
-        unsafe();
+        //multiInsSafe();
+        //unsafe();
         shableInsSage();
     }
 
@@ -39,6 +39,7 @@ public final class ClientServer {
         Bootstrap b = new Bootstrap();
         b.group(workerGroup);
         b.channel(NioSocketChannel.class);
+        // 多线程共享一个handler不安全，需要其自身保证安全性
         b.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel ch) throws Exception {

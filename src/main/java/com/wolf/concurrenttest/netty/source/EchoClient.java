@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.jjzl.source;
+package com.wolf.concurrenttest.netty.source;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;

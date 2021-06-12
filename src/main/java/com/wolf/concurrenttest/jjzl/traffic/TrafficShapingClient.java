@@ -16,7 +16,6 @@ import io.netty.handler.codec.string.StringDecoder;
 public class TrafficShapingClient {
 
     public void connect(int port, String host) throws Exception {
-        // 配置客户端NIO线程组
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();

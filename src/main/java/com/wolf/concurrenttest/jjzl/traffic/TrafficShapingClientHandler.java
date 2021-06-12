@@ -33,8 +33,7 @@ public class TrafficShapingClientHandler extends ChannelInboundHandlerAdapter {
                 buf = Unpooled.copiedBuffer(ECHO_REQ, DELIMITER.getBytes(StandardCharsets.UTF_8));
                 SEQ.getAndAdd(buf.readableBytes());
                 if (ctx.channel().isWritable()) {
-                    ctx.write(buf);
-                    ctx.flush();
+                    ctx.writeAndFlush(buf);
                     int counter = SEQ.getAndSet(0);
                     System.out.println("The client send rate is : " + counter + " bytes/s");
                 } else {

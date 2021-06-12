@@ -23,7 +23,7 @@ public class NettyServerQuitDemo {
     public static void main(String[] args) {
         //quitProblem();
 
-        //notQuit1();
+        notQuit1();
 
         //notQuit2();
     }
@@ -57,7 +57,7 @@ public class NettyServerQuitDemo {
         }
     }
 
-    // 不退出方法1
+    // 不退出的方法展示-1
     private static void notQuit1() {
         NioEventLoopGroup boosGroup = new NioEventLoopGroup();
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -86,7 +86,7 @@ public class NettyServerQuitDemo {
         }
     }
 
-    // 退出的问题方法
+    // 演示程序自动退出了
     private static void quitProblem() {
         NioEventLoopGroup boosGroup = new NioEventLoopGroup();
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -106,7 +106,7 @@ public class NettyServerQuitDemo {
                     });
             // bind内部交给了eventloop线程,eventloop是非守护线程，运行后不会主动退出，只有调用shutdown才可退出
             ChannelFuture f = b.bind(18080).sync();
-            // 监听channel关闭事件
+            // 监听channel关闭事件，异步监听回调
             f.channel().closeFuture().addListener((ChannelFutureListener) channelFuture ->
                     logger.info(channelFuture.channel().toString() + " 链路关闭")
             );

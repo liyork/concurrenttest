@@ -1,3 +1,4 @@
+
 package com.wolf.concurrenttest.jjzl.pool;
 
 import io.netty.buffer.ByteBuf;
@@ -9,32 +10,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Description: 普通客户端发送请求
- * Created on 2021/6/2 9:21 PM
- *
- * @author 李超
- * @version 0.0.1
- */
+// 执行发送
 public class ConcurrentPerformanceClientHandler extends ChannelInboundHandlerAdapter {
-    static ScheduledExecutorService scheduledExecutorService =
-            Executors.newSingleThreadScheduledExecutor();
+    static ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             for (int i = 0; i < 100; i++) {
-                ByteBuf firstMsg = Unpooled.buffer(1024);
-                for (int k = 0; k < firstMsg.capacity(); k++) {
-                    firstMsg.writeByte((byte) i);
+                ByteBuf firstMessage = Unpooled.buffer(ConcurrentPerformanceClient.MSG_SIZE);
+                for (int k = 0; k < firstMessage.capacity(); k++) {
+                    firstMessage.writeByte((byte) k);
                 }
-                ctx.writeAndFlush(firstMsg);
+                ctx.writeAndFlush(firstMessage);
             }
         }, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        super.channelRead(ctx, msg);
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }

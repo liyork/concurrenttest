@@ -1,7 +1,7 @@
-package com.wolf.concurrenttest.jjzl.memory;
+
+package com.wolf.concurrenttest.jjzl.channelhandler;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -9,16 +9,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-/**
- * Description:
- * Created on 2021/5/31 1:58 PM
- *
- * @author 李超
- * @version 0.0.1
- */
-public class ConfigServerUnpooled {
+// 配合测试的服务
+public final class CooperateServer {
+
+    static final int PORT = Integer.parseInt(System.getProperty("port", "18087"));
+
     public static void main(String[] args) throws Exception {
-        // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -31,19 +27,12 @@ public class ConfigServerUnpooled {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            // 配置为非池化的内存分配
-                            ch.config().setAllocator(UnpooledByteBufAllocator.DEFAULT);
-                            p.addLast(new MemoryServerHandler());
+                            p.addLast(new CooperateServerHandler());
                         }
                     });
-
-            // Start the server.
-            ChannelFuture f = b.bind(18083).sync();
-
-            // Wait until the server socket is closed.
+            ChannelFuture f = b.bind(PORT).sync();
             f.channel().closeFuture().sync();
         } finally {
-            // Shut down all event loops to terminate all threads.
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }

@@ -18,7 +18,6 @@ import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 
 public class TrafficShapingServer {
     public void bind(int port) throws Exception {
-        // 配置服务端的NIO线程组
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -31,7 +30,7 @@ public class TrafficShapingServer {
                         @Override
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
-                            // 需要计算请求和发送消息的大小，类型是ByteBuf或ByteBufHolder，要放在业务编码之后、解码之前
+                            // 需要计算请求和发送消息的大小，类型是ByteBuf或ByteBufHolder，要放在业务编码之后(用于写)、解码之前(用于读)
                             ch.pipeline().addLast("Channel Traffic Shaping", new ChannelTrafficShapingHandler(1024 * 1024, 1024 * 1024, 1000));
                             ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
                             ch.pipeline().addLast(new DelimiterBasedFrameDecoder(2048 * 1024, delimiter));
@@ -51,14 +50,6 @@ public class TrafficShapingServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 18091;
-        if (args != null && args.length > 0) {
-            try {
-                port = Integer.valueOf(args[0]);
-            } catch (NumberFormatException e) {
-                // 采用默认值
-            }
-        }
-        new TrafficShapingServer().bind(port);
+        new TrafficShapingServer().bind(18091);
     }
 }

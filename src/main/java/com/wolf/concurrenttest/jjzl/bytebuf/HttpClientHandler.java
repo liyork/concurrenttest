@@ -12,6 +12,7 @@ public class HttpClientHandler extends SimpleChannelInboundHandler<FullHttpRespo
 
     DefaultPromise<HttpResponse> respPromise;
 
+    // 这里是EventLoop线程执行
     @Override
     protected void channelRead0(ChannelHandlerContext ctx,
                                 FullHttpResponse msg) throws Exception {

@@ -26,6 +26,7 @@ public class HttpServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(new HttpServerCodec());
+                            // todo 这个的作用?
                             ch.pipeline().addLast(new HttpObjectAggregator(Short.MAX_VALUE));
                             ch.pipeline().addLast(new HttpServerHandler());
                         }

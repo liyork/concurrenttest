@@ -1,16 +1,14 @@
 package com.wolf.concurrenttest.jjzl.gateway;
 
-import ch.qos.logback.core.util.TimeUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Description: 有问题，总是分配64kb数组不论请求多大
+ * Description: 有问题，因为总是分配64kb数组不论请求多大
  * Created on 2021/6/1 9:17 AM
  *
  * @author 李超

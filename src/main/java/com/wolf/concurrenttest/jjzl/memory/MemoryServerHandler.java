@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.ReferenceCountUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +15,7 @@ import java.util.concurrent.Executors;
  * @author 李超
  * @version 0.0.1
  */
-public class RouterServerHandler extends ChannelInboundHandlerAdapter {
+public class MemoryServerHandler extends ChannelInboundHandlerAdapter {
     static ExecutorService executorService = Executors.newSingleThreadExecutor();
     PooledByteBufAllocator allocator = new PooledByteBufAllocator(false);
 
@@ -25,10 +24,17 @@ public class RouterServerHandler extends ChannelInboundHandlerAdapter {
         ByteBuf reqMsg = (ByteBuf) msg;// 接收netty来的内存
         byte[] body = new byte[reqMsg.readableBytes()];
         executorService.execute(() -> {
-            ByteBuf respMsg = allocator.heapBuffer(body.length);// 主动分配内存作为响应
+            ByteBuf respMsg = allocator.heapBuffer(body.length);// 主动分配堆内存作为响应
             respMsg.writeBytes(body);
             ctx.writeAndFlush(respMsg);
         });
-        //ReferenceCountUtil.release(reqMsg);// 主动释放读取的buf
+        // 需要主动释放读取的buf
+        //ReferenceCountUtil.release(reqMsg);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }

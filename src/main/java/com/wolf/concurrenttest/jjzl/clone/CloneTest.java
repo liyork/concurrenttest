@@ -9,8 +9,8 @@ package com.wolf.concurrenttest.jjzl.clone;
  */
 public class CloneTest {
     public static void main(String[] args) throws CloneNotSupportedException {
-        //testShallowCopy();
-        testDeepCopy();
+        testShallowCopy();
+        //testDeepCopy();
     }
 
     private static void testShallowCopy() throws CloneNotSupportedException {

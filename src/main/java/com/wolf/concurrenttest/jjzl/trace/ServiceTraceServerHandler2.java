@@ -57,7 +57,7 @@ public class ServiceTraceServerHandler2 extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         int sendBytes = ((ByteBuf) msg).readableBytes();
         ChannelFuture writeFuture = ctx.write(msg);
-        writeFuture.addListener((f) -> {
+        writeFuture.addListener((f) -> {// todo 谁来触发他的done?
             totalSendBytes.getAndAdd(sendBytes);// 异步完成时才能统计
         });
         ctx.flush();

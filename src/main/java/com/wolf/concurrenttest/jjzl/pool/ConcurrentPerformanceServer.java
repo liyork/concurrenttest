@@ -1,4 +1,5 @@
-package com.wolf.concurrenttest.jjzl.memory;
+
+package com.wolf.concurrenttest.jjzl.pool;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -8,17 +9,17 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
-/**
- * Description:
- * Created on 2021/5/31 1:58 PM
- *
- * @author 李超
- * @version 0.0.1
- */
-public class ConfigServerUnpooled {
+public final class ConcurrentPerformanceServer {
+
+    static final int PORT = Integer.parseInt(System.getProperty("port", "18088"));
+    static final EventExecutorGroup executor = new DefaultEventExecutorGroup(100);
+
+    static final EventExecutorGroup eventExecutorGroup = new DefaultEventExecutorGroup(100);
+
     public static void main(String[] args) throws Exception {
-        // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -30,20 +31,16 @@ public class ConfigServerUnpooled {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline p = ch.pipeline();
-                            // 配置为非池化的内存分配
                             ch.config().setAllocator(UnpooledByteBufAllocator.DEFAULT);
-                            p.addLast(new MemoryServerHandler());
+                            ChannelPipeline p = ch.pipeline();
+                            //p.addLast(executor,new EventExecutorGroupHandler());
+                            p.addLast(new EventExecutorGroupHandler1());
                         }
-                    });
-
-            // Start the server.
-            ChannelFuture f = b.bind(18083).sync();
-
-            // Wait until the server socket is closed.
+                    }).childOption(ChannelOption.SO_RCVBUF, 8 * 1024)
+                    .childOption(ChannelOption.SO_SNDBUF, 8 * 1024);
+            ChannelFuture f = b.bind(PORT).sync();
             f.channel().closeFuture().sync();
         } finally {
-            // Shut down all event loops to terminate all threads.
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }

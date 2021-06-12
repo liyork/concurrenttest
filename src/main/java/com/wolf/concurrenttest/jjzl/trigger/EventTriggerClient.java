@@ -24,6 +24,7 @@ public class EventTriggerClient {
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+                            // todo 再查看
                             ch.pipeline().addLast(new DelimiterBasedFrameDecoder(2048, delimiter));
                             ch.pipeline().addLast(new StringDecoder());
                             ch.pipeline().addLast(new EventTriggerClientHandler());
@@ -39,10 +40,6 @@ public class EventTriggerClient {
         }
     }
 
-    /**
-     * @param args
-     * @throws Exception
-     */
     public static void main(String[] args) throws Exception {
         int port = 18090;
         if (args != null && args.length > 0) {

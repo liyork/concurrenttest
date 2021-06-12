@@ -38,12 +38,13 @@ public class HttpClient {
     }
 
     private HttpResponse blockSend(FullHttpRequest request) throws InterruptedException, ExecutionException {
+        // 设定头长
         request.headers().set(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
         DefaultPromise<HttpResponse> respPromise = new DefaultPromise<HttpResponse>(channel.eventLoop());
         handler.setRespPromise(respPromise);
         channel.writeAndFlush(request);
         // 阻塞获取响应
-        HttpResponse response = respPromise.get();
+        HttpResponse response = respPromise.get();// 这里是main线程执行
         if (response != null)
             System.out.print("The client received http response, the body is :" + new String(response.body()));
         return response;
@@ -54,7 +55,7 @@ public class HttpClient {
         client.connect("127.0.0.1", 18084);
         ByteBuf body = Unpooled.wrappedBuffer("Http message!".getBytes("UTF-8"));
         DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,
-                "http://127.0.0.1/user?id=10&addr=NanJing", body);
+                "http://127.0.0.1/user?id=10&addr=xxx", body);
         client.blockSend(request);
     }
 }
