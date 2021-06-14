@@ -11,6 +11,7 @@ import io.netty.handler.logging.LoggingHandler;
 
 /**
  * Description:
+ * AbstractByteBufAllocator--PooledByteBufAllocator/UnpooledByteBufAllocator，至于分配用对内外
  * Created on 2021/5/31 1:58 PM
  *
  * @author 李超
@@ -31,7 +32,7 @@ public class ConfigServerUnpooled {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            // 配置为非池化的内存分配
+                            // 配置为非池化的分配
                             ch.config().setAllocator(UnpooledByteBufAllocator.DEFAULT);
                             p.addLast(new MemoryServerHandler());
                         }

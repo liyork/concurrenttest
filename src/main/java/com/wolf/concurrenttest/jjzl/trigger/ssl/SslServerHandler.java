@@ -9,7 +9,7 @@ import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 
 /**
- * 监听ssl事件，todo 如何进行有效控制?
+ * 监听ssl事件，握手成功表示本次连接已成功，则记录，太多则进行控制不允许再建立。
  */
 @ChannelHandler.Sharable
 public class SslServerHandler extends SimpleChannelInboundHandler<Object> {
@@ -29,7 +29,7 @@ public class SslServerHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt == SslHandshakeCompletionEvent.SUCCESS) {
-            // 这里可以执行流控
+            // 这里可以执行流控，控制数量
             SslServer.channelMap.put(ctx.channel().id().toString(), (NioSocketChannel) ctx.channel());
         } else if (evt == SslCloseCompletionEvent.SUCCESS) {
             SslServer.channelMap.remove(ctx.channel().id().toString());

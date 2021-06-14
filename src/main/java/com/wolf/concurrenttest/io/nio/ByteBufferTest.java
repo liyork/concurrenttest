@@ -32,7 +32,7 @@ public class ByteBufferTest {
         // 它将具有一个底层实现数组，其数组偏移量offset将为零。
         IntBuffer buffer = IntBuffer.allocate(8);
 
-        for(int i = 0; i < buffer.capacity(); ++i) {
+        for (int i = 0; i < buffer.capacity(); ++i) {
             int j = 2 * (i + 1);
             // 将给定整数写入此缓冲区的当前位置，当前位置递增
             buffer.put(j);//put(pos++,value)
@@ -67,9 +67,6 @@ public class ByteBufferTest {
         System.out.println(buffer.get());
         buffer.reset();
         System.out.println(buffer.get());
-
-
-
     }
 
     @Test
@@ -121,9 +118,9 @@ public class ByteBufferTest {
 
         int[] arr = new int[10];
         //如果直接放入0,arr.length则报异常
-        buffer1.get(arr,0,buffer1.remaining());
+        buffer1.get(arr, 0, buffer1.remaining());
 
-        for(int i : arr) {
+        for (int i : arr) {
             System.out.println(i);
         }
 
@@ -141,7 +138,7 @@ public class ByteBufferTest {
 
         buffer1.flip();
 
-        while(buffer1.hasRemaining()) {
+        while (buffer1.hasRemaining()) {
             System.out.println(buffer1.get());
         }
     }
@@ -160,12 +157,12 @@ public class ByteBufferTest {
         ByteBuffer buffer = ByteBuffer.allocate(9);
         byte[] bytes = a.getBytes("utf-8");
         System.out.println(bytes.length);
-        for(byte aByte : bytes) {
+        for (byte aByte : bytes) {
             buffer.put(aByte);
         }
         buffer.flip();
 
-        for(byte aByte : bytes) {
+        for (byte aByte : bytes) {
             System.out.println(aByte);
         }
 
@@ -177,7 +174,7 @@ public class ByteBufferTest {
     private void readBuffer(IntBuffer buffer) {
         System.out.println(buffer.remaining());
         // 查看在当前位置和限制位置之间是否有元素
-        while(buffer.hasRemaining()) {
+        while (buffer.hasRemaining()) {
             // 读取此缓冲区当前位置的整数，然后当前位置递增 get(pos++)
             int j = buffer.get();
             System.out.print(j + "  ");
@@ -201,7 +198,7 @@ public class ByteBufferTest {
         buffer.flip();
         output("调用flip()", buffer);
 
-        while(buffer.remaining() > 0) {
+        while (buffer.remaining() > 0) {
             byte b = buffer.get();
             System.out.print(((char) b));
         }
@@ -230,7 +227,7 @@ public class ByteBufferTest {
         ByteBuffer buffer1 = ByteBuffer.allocate(10);
         boolean b = buffer1.hasArray();
         System.out.println(b);
-        if(b) {
+        if (b) {
             byte[] array1 = buffer1.array();
         }
 
@@ -253,7 +250,7 @@ public class ByteBufferTest {
         ByteBuffer parent = ByteBuffer.allocate(10);
 
         // 缓冲区中的数据0-9
-        for(int i = 0; i < parent.capacity(); ++i) {
+        for (int i = 0; i < parent.capacity(); ++i) {
             parent.put((byte) i);
         }
 
@@ -263,7 +260,7 @@ public class ByteBufferTest {
         ByteBuffer children = parent.slice();
 
         // 改变子缓冲区的内容
-        for(int i = 0; i < children.capacity(); ++i) {
+        for (int i = 0; i < children.capacity(); ++i) {
             byte b = children.get(i);
             b *= 10;
             children.put(i, b);
@@ -272,7 +269,7 @@ public class ByteBufferTest {
         parent.position(0);
         parent.limit(parent.capacity());
 
-        while(parent.remaining() > 0) {
+        while (parent.remaining() > 0) {
             System.out.println(parent.get());
         }
     }
@@ -283,7 +280,7 @@ public class ByteBufferTest {
         ByteBuffer buffer = ByteBuffer.allocate(10);
 
         // 缓冲区中的数据0-9
-        for(int i = 0; i < buffer.capacity(); ++i) {
+        for (int i = 0; i < buffer.capacity(); ++i) {
             buffer.put((byte) i);
         }
 
@@ -291,7 +288,7 @@ public class ByteBufferTest {
         ByteBuffer readonly = buffer.asReadOnlyBuffer();
 
         // 改变原缓冲区的内容
-        for(int i = 0; i < buffer.capacity(); ++i) {
+        for (int i = 0; i < buffer.capacity(); ++i) {
             byte b = buffer.get(i);
             b *= 10;
             buffer.put(i, b);
@@ -301,7 +298,7 @@ public class ByteBufferTest {
         readonly.limit(buffer.capacity());
 
         // 只读缓冲区的内容也随之改变
-        while(readonly.remaining() > 0) {
+        while (readonly.remaining() > 0) {
             System.out.println(readonly.get());
         }
 
@@ -325,12 +322,12 @@ public class ByteBufferTest {
         // 使用allocateDirect，而不是allocate
         ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
 
-        while(true) {
+        while (true) {
             buffer.clear();
 
             int r = fcin.read(buffer);
 
-            if(r == -1) {
+            if (r == -1) {
                 break;
             }
 
@@ -358,11 +355,11 @@ public class ByteBufferTest {
     public void testTwoFlip() throws Exception {
         ByteBuffer wrap = ByteBuffer.wrap("abc".getBytes("utf-8"));
 
-        System.out.println("position: "+wrap.position()+",limit:"+wrap.limit()+",capacity:"+wrap.capacity()+",remaining:"+wrap.remaining());
+        System.out.println("position: " + wrap.position() + ",limit:" + wrap.limit() + ",capacity:" + wrap.capacity() + ",remaining:" + wrap.remaining());
         wrap.flip();
-        System.out.println("position: "+wrap.position()+",limit:"+wrap.limit()+",capacity:"+wrap.capacity()+",remaining:"+wrap.remaining());
+        System.out.println("position: " + wrap.position() + ",limit:" + wrap.limit() + ",capacity:" + wrap.capacity() + ",remaining:" + wrap.remaining());
         wrap.flip();
-        System.out.println("position: "+wrap.position()+",limit:"+wrap.limit()+",capacity:"+wrap.capacity()+",remaining:"+wrap.remaining());
+        System.out.println("position: " + wrap.position() + ",limit:" + wrap.limit() + ",capacity:" + wrap.capacity() + ",remaining:" + wrap.remaining());
 
     }
 }

@@ -22,6 +22,8 @@ public class ServiceTraceServerHandler2 extends ChannelInboundHandlerAdapter {
     static ScheduledExecutorService eventLoopPendingTaskExecutorService = Executors.newSingleThreadScheduledExecutor();
     static ScheduledExecutorService writeQueueKpiExecutorService = Executors.newSingleThreadScheduledExecutor();
 
+    private GenericProgressiveFutureListenerTest x = new GenericProgressiveFutureListenerTest();
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -57,9 +59,13 @@ public class ServiceTraceServerHandler2 extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         int sendBytes = ((ByteBuf) msg).readableBytes();
         ChannelFuture writeFuture = ctx.write(msg);
-        writeFuture.addListener((f) -> {// todo 谁来触发他的done?
+        // 谁来触发他future.done?
+        // 当下面ctx.flush--NioSocketChannel.doWrite中做javaChannel().write之后
+        //in.removeBytes--safeSuccess--DefaultPromise.notifyListener0--operationComplete
+        writeFuture.addListener((f) -> {
             totalSendBytes.getAndAdd(sendBytes);// 异步完成时才能统计
         });
+        writeFuture.addListener(x);// 监听写出的进度
         ctx.flush();
     }
 

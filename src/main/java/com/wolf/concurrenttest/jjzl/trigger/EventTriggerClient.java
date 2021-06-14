@@ -24,7 +24,7 @@ public class EventTriggerClient {
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
-                            // todo 再查看
+                            // 以delimiter结尾才能算作一条完整被处理的消息
                             ch.pipeline().addLast(new DelimiterBasedFrameDecoder(2048, delimiter));
                             ch.pipeline().addLast(new StringDecoder());
                             ch.pipeline().addLast(new EventTriggerClientHandler());

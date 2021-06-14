@@ -9,8 +9,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 
 public final class ServiceTraceServer {
 
@@ -23,7 +21,7 @@ public final class ServiceTraceServer {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .option(ChannelOption.SO_BACKLOG, 100)
+                    .option(ChannelOption.SO_BACKLOG, 100)// 用于acceptChannel的配置
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
@@ -31,10 +29,11 @@ public final class ServiceTraceServer {
                             ch.config().setAllocator(UnpooledByteBufAllocator.DEFAULT);
                             ChannelPipeline p = ch.pipeline();
                             p.addFirst(new ServiceTraceProfileServerHandler());
-//                     p.addLast(new ServiceTraceServerHandler());
+                            //p.addLast(new ServiceTraceServerHandler());
                             p.addLast(new ServiceTraceServerHandler2());
                         }
-                    }).childOption(ChannelOption.SO_RCVBUF, 8 * 1024)
+                    })
+                    .childOption(ChannelOption.SO_RCVBUF, 8 * 1024)// 用于接收连接后创建的channel的配置
                     .childOption(ChannelOption.SO_SNDBUF, 8 * 1024);
             ChannelFuture f = b.bind(PORT).sync();
             f.channel().closeFuture().sync();

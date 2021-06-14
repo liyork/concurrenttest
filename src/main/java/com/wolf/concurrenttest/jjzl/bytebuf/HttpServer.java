@@ -26,7 +26,8 @@ public class HttpServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(new HttpServerCodec());
-                            // todo 这个的作用?
+                            // 用POST方式请求时，对应的参数信息是保存在message body中的,如果只是单纯的用HttpServerCodec是无法完全的解析Http POST请求的，
+                            // 因为HttpServerCodec只能获取uri中参数，所以需要加上HttpObjectAggregator
                             ch.pipeline().addLast(new HttpObjectAggregator(Short.MAX_VALUE));
                             ch.pipeline().addLast(new HttpServerHandler());
                         }
