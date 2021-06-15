@@ -4,22 +4,23 @@ netty进阶之路_跟着案例学netty
 知识都是相互关联的，很难在基础知识不扎实的情况下掌握更高阶的知识
 
 linux常用信号量
-SIGKILL  终止进程，强制杀死进程
+SIGKILL  终止进程，强制杀死进程  kill -9 pid
 SIGTERM  终止进程，软件终止信号
 SIGTSTP  终止进程，终端来的停止信号
 SIGUSR1  终止进程，用户定义信号1
 SIGUSR2  终止进程，用户定义信号2
-SIGINT  终止进程，中断进程
+SIGINT  终止进程，中断进程 kill pid
 SIGQUIT  建立core文件终止进程，并且生成core文件
 
 
-netty优雅退出三大类操作：
+## netty优雅退出三大类操作：
 1.把NIO线程的状态位设置ST_SHUTTING_DOWN，不再处理新的消息
-2.推出前的预处理操作：把发送队列中尚未发送或者正在发送的消息发送完、把已经到期或在退出超期之前到期的定时任务执行完成、把用户注册到NIO线程的退出Hook任务执行完
+2.退出前的预处理操作：把发送队列中尚未发送或者正在发送的消息发送完、把已经到期或在退出超期之前到期的定时任务执行完成、把用户注册到NIO线程的退出Hook任务执行完
 3.资源的释放操作：所有Channel的释放、多路复用器的去注册和关闭、所有队列和定时任务的清空取消，eventloop线程的退出
 
 NioEventLoopGroup是NioEventLoop线程组，循环EventLoop数组并调用shutdownGracefully
 NioEventLoop的shutdownGracefully中，先修改线程状态为正在关闭状态。然后closeAll将注册在selector上的所有Channel都关闭，调用ChannelUnsafe.close
+
 AbstractUnsafe.close完成几个功能：
 a.判断当前链路是否有消息正在发送，若有则将selectionKey的去注册操作封装成Task放到eventLoop中
 b.将发送队列清空，不在允许发送新的消息
@@ -28,7 +29,7 @@ d.pipeline.fireChannelInactive
 e.调用AbstractNioChannel.Deregister从多路复用器上取消selectionKey
 f.ChannelOutboundBuffer.close，释放发送队列中所有尚未完成发送的ByteBuf，等待GC
 
-TaskQueu退出处理流程
+TaskQueue退出处理流程
 NioEventLoop执行完closeAll，需要调用confirmShutdown看是否真的可以退出
 a.执行尚在TaskQueue中排队的task
 b.执行注册到NioEventLoop中的shutdownHook
@@ -49,7 +50,7 @@ netty优雅退出常用于进程退出时，在应用的shutdownHook中调用Eve
 由于采用BIO模式来调用NIO通信框架。
 netty解决了传统BIO模型的问题，NIO线程中聚合了多路复用器selector，会不断地轮询注册在其上的Channel，若某个Channel上有新的TCP连接接入、读和写操作，这个
 Channel处于就绪状态，会被Selector轮询出来，然后通过SelectionKey可以获取就绪Channel集合，进行后续的I/O操作。
-# netstat -an|find "ESTABLISHED"|find "18081"
+`netstat -an|find "ESTABLISHED"|find "18081"`
 
 
 javanio客户端创建原理：
@@ -95,12 +96,12 @@ Netty提供的主要TCP参数：
 
 
 
-## netty内存池泄露
+## netty内存池泄露问题排查
 问题：性能测试时，运行一段时间发现内存分配异常，服务端无法接收请求消息。
 日志出现异常，内存上升，怀疑泄露
 OutOfDirectMemoryError: failed to allocate xxxxxbyte(s) of direct memory
 
-对业务ByteBuf申请的相关代码排查，发信啊响应消息由业务线程创建，但没有主动释放,怀疑可能导致内存泄露。
+对业务ByteBuf申请的相关代码排查，发现响应消息由业务线程创建，但没有主动释放,怀疑可能导致内存泄露。
 响应消息使用的PooledHeapByteBuf，但从内存占用趋势，并没有发现堆内存泄露
 对内存快照，查看PooledUnsafeHeapByteBuf实例个数和内存占用很少，排除内存泄露嫌疑
 
@@ -108,8 +109,8 @@ OutOfDirectMemoryError: failed to allocate xxxxxbyte(s) of direct memory
 1.若是堆内存(PooledHeapByteBuf)，将HeapByteBuffer转换成DirectByteBuffer，并释放PooledHeapByteBuf到内存池，(AbstractNioChannel.newDirectBuffer)
 若消息完整地写到SocketChannel中，则释放DirectByteBuffer,(ChannelOutboundBuffer.remove)
 2.若是DirectByteBuffer则不用转换，消息发送完成后，由ChannelOutBoundBuffer.remove负责释放
-
 如上可以确认不是响应消息没有主动释放导致的内存内泄漏，
+
 进一步dump内存分析，
 jmap -dump:format=b,file=router_memory.hprof pid
 通过MemoryAnalyzer分析，内存泄漏点是Netty内存池对象PoolChunk，但由于请求和响应消息内存分配都来自PoolChunk，暂不确认是请求还是响应导致的问题。
@@ -123,10 +124,10 @@ DefaultMaxMessagesRecvByteBufAllocator$MaxMessageHandler.allocate。最终调用
 请求ByteBuf的创建分析完，继续分析释放，由于业务的RouterServerHandler继承自ChannelInBoundHandlerAdapter，channelRead执行完成，
 ChannelHandler的执行就结束。
 通过分析，请求ByteBuf被netty申请后就没有释放。
-为了验证，在代码中调用ReferenceCountUtil.release进行释放内存，压测发现系统平稳。
+为了验证，在代码中添加调用ReferenceCountUtil.release进行释放内存，压测发现系统平稳。
 
 
-更好地管理ByteBuf，4种场景
+## 更好地管理ByteBuf，4种场景
 1.基于内存池的请求ByteBuf
 包括PooledDirectByteBuf和PooledHeapByteBuf由netty的nioEventLoop线程在处理Channel的读操作时分配，需要在业务ChannelInboundHandler
 处理完请求消息之后释放(通常在解码之后)，他的释放有两种策略。
@@ -143,32 +144,26 @@ b.业务handler中调用ctx.fireChannelRead，让请求消息继续向后执行�
 若是DirectByteBuffer，不用转换，待消息发送完后释放。
 因此，对于需要发送的响应ByteBuf，由业务创建，但不需要由业务释放。
 
-
 通过内存池技术重用这些临时对象，可以降低gc频次和减少耗时，提升系统的吞吐量
 
-
-netty内存池工作原理
-
-
+## netty内存池工作原理
 
 跨线程操作ByteBuf使用注意：
 1.要防止netty的NioEventLoop线程与应用线程并发操作
 2.ByteBuf的申请和释放，避免忘记释放、重复释放，以及释放后继续访问
 注意频繁内存拷贝问题
 
-
 ByteBuf通过两个指针来协助缓冲区的读写操作，读操作用readerIndex，写操作用writerIndex
 discardable bytes|readable bytes(conent)|writeable bytes |
 0							 readerIndex            writerIndex         capacity
 调用discardReadBytes则释放0~readerIndex空间
-
 
 ByteBuf引用计数器原理
 AbstractReferenceCountedByteBuf实现了对ByteBuf的内存管理，通过引用计数器对ByteBuf的引用情况管理，跟踪，以实现内存的回收、销毁和重复利用
 
 
 
-netty发送队列积压
+## netty发送队列积压
 1个客户端访问服务器，基于netty通信，压测一段时间后，响应时间越来越长，失败率增加，监控客户端内存使用情况，内存一直飙升，最后oom，cpu占用居高不下，吞吐量0
 dump客户端内存文件进行分析，发现netty的nioEventLoop占用了99%内存，
 继续对引用关系分析，发现真正泄露的是WriteAndFlushTask，它包含了待发送的客户端请求消息msg及promise对象。
@@ -178,12 +173,11 @@ dump客户端内存文件进行分析，发现netty的nioEventLoop占用了99%�
 利用netty提供的高低水位机制，可以实现客户端更精准的流控
 
 
-导师消息积压可能场景：
+导致消息积压可能场景：
 1.网络瓶颈，发送超过网络链接处理能力，会导致发送队列积压
 2.服务端读取速度小于发送方发送速度，导致自身TCP发送缓冲区满，频繁发生write0字节时，待发送消息会在netty发送队列中排队
 
 利用netstat -ano等命令可以监控某个端口的TCP接收(recv-q)和发送(send-q)队列积压情况。日常监控，将netty的链路数、网络读写速度等指标纳入监控系统，告警
-
 
 
 netty消息发送工作机制
@@ -214,15 +208,14 @@ SelectionKey.OP_WRITE退出循环，在下一个SelectionKey轮询周期继续�
 ChannelOutBoundBuffer.incrementPendingOutboundBytes，业务可监听该事件fireChannelWritabilityChanged
 
 
-
-高比昂发压测性能波动问题
+## 高并发压测性能波动问题
 性能压测4000qps一段后，cpu占用飙升，性能极具下降，最低到0，停止压测一段时间，系统恢复，再压测一段时间，用户并发量大之后，性能又急剧下降，形成周期性波动，吞吐量不稳定
 采集线程堆栈，发现GC线程占用大量CPU资源
 由于停压后，还能恢复，所以不存在内存忘记释放导致的泄露问题。
 dump内存堆栈，通过map进行top内存占用分析，Giggest Objects，jdk的线程池占用内存大。切换到类实例图，Histogram中按Retained Heap排序，char占用多。
 通过Dominator Tree查看引用，发现char数组被jdk线程池的LinkedBlockingQueue引用
 
-结合代码分析，api网关每次接收请求消息，无论消息大小，都构造64KB的char数组，用于处理和转发请求。若后端处理消息慢，则导致任务队列积压，由于每个任务(Runable)持有一个
+结合代码分析，api网关每次接收请求消息，无论消息大小，都构造64KB的char数组，用于处理和转发请求。若后端处理消息慢，则导致任务队列积压，由于每个任务(Runnable)持有一个
 64KB的char数组，所以积压多了转移到老年代，触发gc，吞吐量为0
 
 由于当前网关平台转发的请求报文都较小(1kb左右)，进行优化，按照请求消息大小初始化char数组
@@ -286,7 +279,7 @@ ChannelPipeline通过链表方式管理ChannelHandler，每个ChannelHandler对�
 通过ChannelHandlerContext.firUserEventTriggered或者Channel.pipeline.fireUserEventTriggered可以实现业务自定义事件的发送
 
 
-车联网服务端接收不到车载中断终端消息案例
+## 车联网服务端接收不到车载中断终端消息案例
 当服务端出现性能瓶颈或者阻塞时，会导致终端设备连接超时和掉线，引发各种问题，在物联网场景下，一定要防止服务端因编码不当导致的意外阻塞，进而无法处理终端请求消息
 问题：
 车联网服务端用netty构建，接收车载终端的请求消息，然后下发给后端其他系统，最后返回应答给车载终端。系统运行一段时间后发现服务端接收不到车载终端消息，导致业务中断。
@@ -298,7 +291,6 @@ ChannelPipeline通过链表方式管理ChannelHandler，每个ChannelHandler对�
 从堆栈看，netty的nioEventLoop读取消息后，调用业务线程池执行业务逻辑时触发RejectedExecutionException异常，由于后续业务逻辑由NioEventLoop线程执行，
 因此可以判断业务使用了CallerRunsPolicy策略，即在业务线程池消息队列满后，由调用方的线程来执行当前Runnable。NioEventLoop在执行业务任务时发生了阻塞，
 导致NioEventLoop线程无法处理网络读写消息，因此会看到服务端没有消息接入，但是从阻塞状态恢复后，就可以继续接受消息。
-
 
 
 由于channelHandler是业务代码和netty框架交互的地方，所以业务里面的逻辑通常由nioEventLoop线程执行，因此放置业务代码阻塞nioEventLoop线程显得很重要
@@ -388,7 +380,7 @@ netty4中，当调用write时，netty会将发送事件封装成任务，放入n
 
 
 
-升级netty3->4后上下文丢失问题
+## 升级netty3->4后上下文丢失问题
 为提升业务的二次定制能力，降低对接口的侵入性，业务使用线程变量进行消息上下文的传递。业务也使用了一些第三方开源容器，也提供了线程级变量上下文的功能。
 升级后，业务的ChannelHandler发生了空指针异常，无论是业务自定义的线程上下文，还是第三方容器的线程上下文，都取不到
 调试发现，业务ChannelHandler获取的线程上下文对象和之前业务传递的上下文对象不是同一个，说明执行ChannelHandler的线程跟处理业务的线程不是同一个。
@@ -487,7 +479,7 @@ netty4采用串行化设计理念，从消息的读取、编码到后续的Handl
 
 
 
-业务ChannelHandler无法并发执行问题
+## 业务ChannelHandler无法并发执行问题
 业务通过DefaultEventExecutorGroup并行执行LogicServerHandler，性能压测时发现服务端的处理能力非常差，感觉多线程没生效。
 
 吞吐量是个位数，考虑到业务处理逻辑好事在100ms~1000ms，怀疑ChannelHandler并没有被并发执行，而是被单线程执行
@@ -547,7 +539,7 @@ SocketChannel和NioEventLoop的绑定关系，MultithreadEventLoopGroup.register
 
 
 
-海量设备内存泄漏问题
+## 海量设备内存泄漏问题
 服务端MQTT消息服务中间件，保持10万用户在线长连接，2万用户并发消息请求。运行一段时间后，发现内存泄漏，甚至怀疑是netty的bug。
 相关资源：
 1.硬件资源：MQTT消息服务器内存16GB，CPU8核
@@ -571,7 +563,7 @@ netty的IdleStateHandler会根据用户的使用场景，启动三类定时任�
 
 操作系统参数调优：
 实现百万级的长连接接入
-1.文件描述符
+1. 文件描述符
 a.查看系统最大文件句柄数：cat /proc/sys/fs/file-max
 配置完成执行sysctl -p让配置生效
 
@@ -582,7 +574,7 @@ soft nofile 1000000
 hard nofile 1000000
 重新登录，再通过ulimit -a 查看
 
-2.tcp相关参数
+2. tcp相关参数
 a.net.ipv4.tcp_rmem:为每个TCP连接分配的读缓冲区内存大小
 第一个值是socket接收缓冲区分配的最小字节数。第二个值时默认值，缓冲区在系统负载不高时可以增长到该值。第三个值时接收缓冲区分配的最大字节数
 b.net.ipv4.tcp_wmem:为每个TCP连接分配的写缓冲区内存大小。
@@ -732,6 +724,7 @@ FlowControlChannelHandler继承userEventTriggered，拦截TLS/SSL握手成功事
     2)延时：由于GC引起的停顿时间，优化目标是缩短延迟时间或完全消除停顿(STW)，避免应用程序在运行中发生抖动。--由于stw导致业务响应产生延时
     3)内存占用：GC正常时占用的内存量
 
+
 gc调优三个基本原则:
 1)MInor GC回收原则：每次新生代GC要尽可能回收多的内存，减少应用程序发生full gc的频率
 2)GC内存最大化原则：垃圾收集器能使用的内存越大，垃圾收集的效率越高，应用程序运行也越流畅，
@@ -810,7 +803,8 @@ ifconfig eth0:1 XX.XX.XX.XX netmask 255.255.255.0
 
 不能机械地以消除静态告警或错误为目标，要结合代码上下文和业务场景进行修改，放置音修改不当引起的性能问题，以及其他问题
 
-Edge Service性能严重下降问题
+
+## Edge Service性能严重下降问题
 问题：基于netty4.1构建的服务新版本性能测试，Restful透传场景，性能相比上一个版本下降50%，无法满足业务的性能需求，需要定位问题原因并优化平台性能
 热点代码分析(CPU执行时间维度)：调用树-方法
 通过方法栈调用分析，发现平台在获取Restful请求消息体时，调用了字节数组拷贝方法，成为性能热点和瓶颈点。
@@ -843,7 +837,7 @@ ByteBuf提供多个接口用于创建某个ByteBuf的视图或复制ByteBuf
 
 
 
-时延毛刺排查相关问题
+## 时延毛刺排查相关问题
 问题：业务高峰期，偶现服务调用时延毛刺问题，时延突然增大的服务没有固定规律，问题发生的比例虽然低，但对客户的体验影响很大
 分析：
 服务调用时延增大，但并不是异常，因此运行日志不会打印错误(ERROR)日志。运用分布式消息跟踪系统，进行分布式环境的问题定位。
@@ -1063,7 +1057,7 @@ grpc采用的是网络I/O线程和业务调用线程分离策略，大部分场�
 
 
 
-channelReadComplete方法被多次调用问题
+## channelReadComplete方法被多次调用问题
 问题：基于http的服务器，生产环境中运行一段时间，部分消息逻辑处理错误，但在灰度测试环境中无法重现问题。
 生产环境中将某个服务实例的调用日志打开一段时间，以便定位问题。发现对于同一个http请求消息，当发生问题时，业务channelHandler的channelReadComplete会被调用多次，
 但大部分消息都调用一次，按照业务的设计，当服务端读到一个完整http请求消息时，在channelReadComplete中进行业务处理。多多次则出现错误
@@ -1107,7 +1101,7 @@ TailContext有时执行一些系统性的清理操作，如当channelRead执行�
 
 
 
-
+## 流量整形
 流量整形(traffic shaping)一种主动调整流量输出速度的措施。典型应用是基于下游网络节点的TPS指标控制本地流量的输出。
 与流量控制的区别在于：流量整形是对流量控制中需要丢弃的报文进行缓存。当令牌桶有足够多的令牌时，在均匀地向外发送这些被缓存的报文。流控则直接丢弃
 整形可能增加延时，而流控不引入额外的延时
@@ -1231,7 +1225,8 @@ SSL连接关闭事件
 
 高并发场景下，若客户端并发量过大，而服务端又没有针对并发连接数进行流控，或者没有弹性伸缩能力，很可能宕机
 
-Netty HTTPS服务端宕机问题
+
+## Netty HTTPS服务端宕机问题
 a和b通过https通信，某天客户端突然发现大量超时，持续一段时间后，发送给服务端的消息全部失败，吞吐量为0，查看服务端日志，发现大量oom，初步判断内存泄漏
 查看SLB入口流量，发现客户端最初发生超时时并没有明显的流量变化，排除突发流量高峰导致系统过载。
 分析服务端日志发现，在客户端超时时间段，后端的缓存服务出现了问题，缓存查询耗时比客户端的超时时间还长，因此导致了客户端超时。
@@ -1287,7 +1282,7 @@ select s from io.netty.channel.socket.nio.NioSocketChannel s where s.ch.isOutput
 
 可以从功能和架构层面优化，由于架构优化改动大，先以快速解决问题为目标提升服务端的可靠性，通过较小改动解决当前问题
 
-netty HTTPS服务端可靠性优化
+### netty HTTPS服务端可靠性优化
 1.https并发连接数流控
 服务端增加对客户端并发连接数的控制。
 基于pipeline机制，可以对SSL握手成功、SSL连接关闭做切面拦截，通过流控切面接口，对HTTPS连接进行计数，根据计数器进行流控，算法：
@@ -1318,19 +1313,18 @@ netty HTTPS客户端优化
 根据KPI数据分析，适当地调长了客户端超时时间，由于调长超时时间后，可能导致客户端线程同步阻塞时间变长，因此也同步调大了tomcat工作线程的大小，以减小客户端
 发生同步阻塞时对系统吞吐量的影响
 
+### 架构层面的可靠性优化
 
-
-## 架构层面的可靠性优化
-1.端到端架构问题刨铣
+1. 端到端架构问题刨铣
 当前架构主要问题：
-1.客户端采用同步阻塞式http调用，I/O效率不高，调用线程容易被阻塞
-2.客户端采用同步阻塞式进行rpc调用，若服务端响应慢，容易阻塞调用方的线程
-3.客户端和服务端采用http/1.1，由于是无状态的一请求一应答模式，所以当个链路通信效率低，需要创建大量链路来提升I/O性能
+a.客户端采用同步阻塞式http调用，I/O效率不高，调用线程容易被阻塞
+b.客户端采用同步阻塞式进行rpc调用，若服务端响应慢，容易阻塞调用方的线程
+c.客户端和服务端采用http/1.1，由于是无状态的一请求一应答模式，所以当个链路通信效率低，需要创建大量链路来提升I/O性能
 
 http client切换到nio
 采用httpClient的问题：
-1.由于I/O读写是阻塞的，所以调用线程容易被网络I/O阻塞
-2.无法充分利用硬件资源，当调用线程被I/O阻塞时，CPU资源闲置，但系统的吞吐量上不来。
+a.由于I/O读写是阻塞的，所以调用线程容易被网络I/O阻塞
+b.无法充分利用硬件资源，当调用线程被I/O阻塞时，CPU资源闲置，但系统的吞吐量上不来。
 
 切换到netty的异步httpclient后，利用I/O多路复用技术，把多个I/O的阻塞复用到同一个select方法的阻塞上，使得系统在单线程的情况下可以同时处理多个客户端连接。
 与传统的多线程/多进程模型比，I/O多路复用的最大优势是系统开销小，系统不需要创建新的进程或者线程，也不需要维护这些进程和线程的运行，减少了系统的维护工作量，
@@ -1391,11 +1385,10 @@ http/2 streaming调用
 3.都streaming。充分利用http/2的多路复用。某时刻，http/2连接上既有请求也有响应，全双工通信。
 
 
-
-
 如果服务端没有考虑各种异常场景，很难稳定运行。
 
-mqtt服务接入超时问题
+
+## mqtt服务接入超时问题
 问题：生产环境mqtt服务运行一段时间后，发现新的端侧设备无法接入，连接超时。
 分析mqtt服务端日志，没有明显的异常，但内存占用很高，查看连接数，发现有数十万个TCP连接处于ESTABLISHED状态，实际的MQTT连接数应该在1万左右，有问题
 由于mqtt服务端的内存是按照2万个左右连接数规模配置的，因此当连接数达到数十万规模后，导致服务端大量SocketChannel积压、内存暴涨、高频率GC和较长STW，
@@ -1492,8 +1485,7 @@ netty的NIO消息发送队列ChannelOutBoundBuffer并没有容量上限，会随
 
 
 
-
-netty实践总结
+## netty实践总结
 一、netty入门知识准备
 1.javaNIO类库
 a.缓冲区Buffer
@@ -1567,136 +1559,3 @@ Class Name   Shallow Heap   Retained Heap(sorted)  Percentage
 出现性能问题时，先确认是netty的问题还是业务的问题，通过jstack打印线程堆栈，按照线程CPU使用情况排序(top -Hp)，看线程干什么。
 通常采集几次发现netty的NIO线程堆栈停留在select操作上，说明I/O比较空闲，性能瓶颈不是netty。
 若发现性能瓶颈在网络I/O读写上，可以适当调大NioEventloopGroup中的workI/O线程数，直到I/O处理性能可以满足业务需求
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

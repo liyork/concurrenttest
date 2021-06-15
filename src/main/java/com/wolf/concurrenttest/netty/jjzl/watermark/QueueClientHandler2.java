@@ -41,7 +41,7 @@ public class QueueClientHandler2 extends ChannelInboundHandlerAdapter {
         ctx.channel().config().setWriteBufferHighWaterMark(10 * 1024 * 1024);
         loadRunner = () -> {
             try {
-                TimeUnit.SECONDS.sleep(30);
+                TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -58,6 +58,13 @@ public class QueueClientHandler2 extends ChannelInboundHandlerAdapter {
             }
         };
         new Thread(loadRunner, "LoadRunnerClientHandler-Thread").start();
+    }
+
+    // 监听channel的可写变更事件
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        logger.warn("channelWritabilityChanged:{}, isWritable:{} ",
+                ctx.channel().unsafe().outboundBuffer().nioBufferSize(), ctx.channel().isWritable());
     }
 
     @Override
