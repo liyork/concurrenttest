@@ -9,7 +9,7 @@ import io.netty.handler.codec.http.HttpResponseDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 
 /**
- * Description:简单介绍加解决密初始化类
+ * Description: 介绍http加解密类
  * <br/> Created on 9/24/17 1:29 AM
  *
  * @author 李超
@@ -26,11 +26,11 @@ public class HttpDecoderEncoderInitializer extends ChannelInitializer<Channel> {
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         if (client) {//客户端，发送加密，接收解密
-            pipeline.addLast("decoder", new HttpResponseDecoder());
-            pipeline.addLast("encoder", new HttpRequestEncoder());
+            pipeline.addLast("decoder", new HttpResponseDecoder());// decode receive response
+            pipeline.addLast("encoder", new HttpRequestEncoder());// encode send request
         } else {
-            pipeline.addLast("decoder", new HttpRequestDecoder());
-            pipeline.addLast("encoder", new HttpResponseEncoder());
+            pipeline.addLast("decoder", new HttpRequestDecoder());// decode http request
+            pipeline.addLast("encoder", new HttpResponseEncoder());// encode http response
         }
     }
 }

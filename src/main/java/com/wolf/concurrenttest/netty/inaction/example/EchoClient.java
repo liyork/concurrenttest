@@ -58,15 +58,14 @@ public class EchoClient {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
-            b.group(group)
+            b.group(group)// specify EventLoopGroup to handle client events
                     .channel(NioSocketChannel.class)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch)
-                                throws Exception {
+                                throws Exception {// called once connection established and channel created
                             System.out.println("EchoClient initChannel... ");
-                            ch.pipeline().addLast(
-                                    new EchoClientHandler());
+                            ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
 
@@ -74,9 +73,10 @@ public class EchoClient {
                 System.out.println("111");
                 ChannelFuture f = null;
                 try {
+                    // connect client to remote peer; wait until sync() completes connect completes
                     f = b.connect(new InetSocketAddress("127.0.0.1", 65534)).sync();
                     System.out.println("222");
-                    f.channel().closeFuture().sync();
+                    f.channel().closeFuture().sync();// wait until clientChannel closes, will block
                     System.out.println("333");
                 } catch (InterruptedException e) {
                     e.printStackTrace();

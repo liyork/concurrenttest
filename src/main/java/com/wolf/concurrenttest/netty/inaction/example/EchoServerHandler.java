@@ -23,12 +23,13 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
         ByteBuf buf = (ByteBuf) msg;
         byte[] req = new byte[buf.readableBytes()];
         buf.readBytes(req);
+        // todo-这里是不是需要对buf进行释放?因为write本身带有释放，而针对这个参数似乎并没有释放
 
         String body = new String(req, StandardCharsets.UTF_8);
         System.out.println("Server received: " + body);
 
         ByteBuf resp = Unpooled.copiedBuffer(body.getBytes(StandardCharsets.UTF_8));
-        ctx.write(resp);
+        ctx.write(resp);// once the write completes netty will automatically release the message
     }
 
     @Override
@@ -36,6 +37,8 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
         ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);//刷新完成后关闭channel
     }
 
+    // should have at least one ChannelHandler that implements this method and so provides
+    // a way to handle all sorts of errors
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();

@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 
 /**
- * Description:汇总部分http信息
+ * Description: 汇总所有零散的http片段(应该是消息被底层拆分了)成为一个完全的请求
  * <br/> Created on 9/24/17 2:33 AM
  *
  * @author 李超
@@ -29,7 +29,6 @@ public class HttpAggregatorInitializer extends ChannelInitializer<Channel> {
         } else {
             pipeline.addLast("codec", new HttpServerCodec());
         }
-        pipeline.addLast("aggegator",
-                new HttpObjectAggregator(512 * 1024));
+        pipeline.addLast("aggregator", new HttpObjectAggregator(512 * 1024));
     }
 }

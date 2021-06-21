@@ -32,8 +32,7 @@ public class EchoClient {
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             System.out.println("EchoClient initChannel... ");
-                            ch.pipeline().addLast(
-                                    new EchoClientHandler());
+                            ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
             System.out.println("111");

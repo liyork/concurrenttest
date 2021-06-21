@@ -15,17 +15,18 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class EchoServerExpandHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        System.out.println("Server received: " + msg);
-        ctx.write(Integer.parseInt((String)msg));
+        System.out.println("EchoServerExpandHandler received: " + msg);
+        ctx.write(Integer.parseInt((String) msg));
     }
+
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER)
-                .addListener(ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
     }
+
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx,
-                                Throwable cause) {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
-    } }
+    }
+}

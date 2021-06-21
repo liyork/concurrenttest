@@ -40,13 +40,12 @@ public class EchoServer {
 
                             System.out.println("connected...; Client:" + ch.remoteAddress());
                             //用4个字节表示整个包的长度，并且跳过这四个字节。
-                            ch.pipeline().addLast(new MyLengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4))
-                                    .addLast(new EchoServerHandler());//todo 这还有顺序？
+                            ch.pipeline().addLast(new SimpleLengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4))
+                                    .addLast(new EchoServerHandler());// 这还有顺序，因为读是从head->tail而写是从tail->head
                         }
                     });
             ChannelFuture f = b.bind().sync();
-            System.out.println(EchoServer.class.getName() +
-                    " started and listen on " + f.channel().localAddress());
+            System.out.println(EchoServer.class.getName() + " started and listen on " + f.channel().localAddress());
             f.channel().closeFuture().sync();
         } finally {
             group.shutdownGracefully().sync();

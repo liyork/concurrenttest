@@ -25,20 +25,17 @@ public class EchoClientExpandHandler extends SimpleChannelInboundHandler<ByteBuf
         buffer.writeInt(1);
         buffer.writeInt(8);
 
-        ctx.write(buffer);
-        ctx.flush();
+        ctx.writeAndFlush(buffer);
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx,
-                             ByteBuf in) {
+    public void channelRead0(ChannelHandlerContext ctx, ByteBuf in) {
         System.out.println("̀Client received:" + ByteBufUtil
                 .hexDump(in.readBytes(in.readableBytes())));
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx,
-                                Throwable cause) {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

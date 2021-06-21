@@ -1,5 +1,6 @@
-package com.wolf.concurrenttest.netty.inaction;
+package com.wolf.concurrenttest.netty.inaction.bytebuf;
 
+import com.wolf.concurrenttest.netty.inaction.DiscardOutboundHandler;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -26,7 +28,9 @@ import java.util.*;
  */
 public class ByteBufTest {
 
-    Charset charset = Charset.forName("utf-8");
+    Charset charset = StandardCharsets.UTF_8;
+    String str = "Netty in action rocks!";
+    ByteBuf buf = Unpooled.copiedBuffer(str, charset);
 
     @Test
     public void testHeapBuf() throws UnsupportedEncodingException {
@@ -195,14 +199,14 @@ public class ByteBufTest {
         System.out.println(byteBuf.arrayOffset() + " " + byteBuf.readerIndex() + " " + byteBuf.writerIndex());
     }
 
+    // slice a ByteBuf
     // 底层引用一个，create a view of an existing buffer
     @Test
     public void testSlice() throws UnsupportedEncodingException {
-        String str = "Netty in action rocks!";
         System.out.println(str.length());// 22
         ByteBuf byteBuf = Unpooled.copiedBuffer(str, charset);
         System.out.println(byteBuf);// 0, 22 ,66
-        ByteBuf slice = byteBuf.slice(0, 14);
+        ByteBuf slice = byteBuf.slice(0, 14);// share the same content
         System.out.println(slice.toString(charset));
 
         slice.setByte(0, 'J');
@@ -210,30 +214,67 @@ public class ByteBufTest {
         System.out.println(slice.getByte(0) == byteBuf.getByte(0));// 都变了
     }
 
+    // user a slice whenever possible, and use copy only as needed
+    // creating a copy of the ByteBuf is more expensive, it needs to do a memory copy
     //两个对象,修改之一互不影响
     @Test
     public void testCopy() throws UnsupportedEncodingException {
-        ByteBuf byteBuf = Unpooled.copiedBuffer("Netty in action rocks!", charset);
-        ByteBuf copy = byteBuf.copy(0, 14);
+        ByteBuf copy = buf.copy(0, 14);
         System.out.println(copy.toString(charset));
 
         copy.setByte(0, 'J');
-        System.out.println(copy.getByte(0) == byteBuf.getByte(0));
+        System.out.println(copy.getByte(0) != buf.getByte(0));
     }
 
     @Test
+    public void testGetAndSet() throws UnsupportedEncodingException {
+        System.out.println((char) buf.getByte(0));
+
+        int readerIndex = buf.readerIndex();
+        int writerIndex = buf.writerIndex();
+
+        buf.setByte(0, 'B');
+        System.out.println((char) buf.getByte(0));
+
+        assert readerIndex == buf.readerIndex();
+        assert writerIndex == buf.writerIndex();
+    }
+
+    @Test
+    public void testReadAndWrite() throws UnsupportedEncodingException {
+        System.out.println((char) buf.readByte());
+
+        int readerIndex = buf.readerIndex();
+        int writerIndex = buf.writerIndex();
+
+        buf.writeByte((byte) '?');
+
+        assert readerIndex == buf.readerIndex();
+        assert writerIndex != buf.writerIndex();
+    }
+
+    // a message object that stores its payload/data in a ByteBuf
+    // todo 如何实现response功能？内部就是多了一个data引用
+    @Test
     public void testByteBufHolder() throws UnsupportedEncodingException {
-        ByteBuf byteBuf = Unpooled.copiedBuffer("Netty in action rocks!", charset);
-        ByteBufHolder byteBufHolder = new DefaultByteBufHolder(byteBuf);
+        System.out.println(buf);
+        ByteBufHolder byteBufHolder = new DefaultByteBufHolder(buf);
+        byteBufHolder.touch("a");// 这里底层返回了this，没有啥用。
+        byteBufHolder.touch(1);
+        System.out.println(buf);
 
         ByteBuf content = byteBufHolder.content();
         System.out.println(content);
     }
 
+    // Unpooled class makes it easier to user the netty's buffer API outside netty
+
+    // ByteBufAllocator allocator = channel.alloc()
+    // ByteBufAllocator allocator = ctx.alloc()
     @Test
     public void testByteBufAllocator() throws UnsupportedEncodingException {
         PooledByteBufAllocator pooledByteBufAllocator = new PooledByteBufAllocator();
-        ByteBuf b1 = pooledByteBufAllocator.buffer();
+        ByteBuf b1 = pooledByteBufAllocator.buffer();// return ByteBuf may be of type heap or direct depend the implementation
         ByteBuf b2 = pooledByteBufAllocator.directBuffer();
         System.out.println(b1 + "__" + b2);
         UnpooledByteBufAllocator unpooledByteBufAllocator = new UnpooledByteBufAllocator(true);
@@ -253,10 +294,10 @@ public class ByteBufTest {
         System.out.println(allocator2);
     }
 
+    // hex string is much more user friendly
     @Test
     public void testByteBufUtil() throws UnsupportedEncodingException {
-        ByteBuf byteBuf = Unpooled.copiedBuffer("Netty in action rocks!", charset);
-        String s = ByteBufUtil.hexDump(byteBuf);
+        String s = ByteBufUtil.hexDump(buf);
         System.out.println(s);
     }
 

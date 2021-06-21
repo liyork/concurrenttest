@@ -28,12 +28,12 @@ public class EchoServer {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            b.group(group, workerGroup)
-                    .channel(NioServerSocketChannel.class)
+            b.group(group, workerGroup)// specify the NioEventLoopGroup to accept new connections and handle accepted connections
+                    .channel(NioServerSocketChannel.class)// specify channel type
                     .option(ChannelOption.SO_BACKLOG, 1024)//请求连接的队列最大长度
                     .localAddress(new InetSocketAddress("127.0.0.1", port))
                     //The ChannelInitializer is mainly used to set up the ChannelPipeline for each Channel that is created.
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                    .childHandler(new ChannelInitializer<SocketChannel>() {// when a connection is accepted
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             System.out.println("connected...; Client:" + ch.remoteAddress());
@@ -41,11 +41,11 @@ public class EchoServer {
                         }
                     });
             //同步等待直到成功
-            ChannelFuture f = b.bind().sync();
-            System.out.println(EchoServer.class.getName() +
-                    " started and listen on " + f.channel().localAddress());
+            ChannelFuture f = b.bind()// bind the server
+                    .sync();// wait until the bind complete
+            System.out.println(EchoServer.class.getName() + " started and listen on " + f.channel().localAddress());
             //同步等待直到监听端口关闭
-            f.channel().closeFuture().sync();
+            f.channel().closeFuture().sync();// wait until the server's channel close
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

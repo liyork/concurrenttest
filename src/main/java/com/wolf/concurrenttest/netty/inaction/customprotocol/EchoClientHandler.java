@@ -5,12 +5,9 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.CharsetUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Description:
@@ -27,43 +24,42 @@ public class EchoClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("EchoClientHandler channelActive");
 
-        //packet = |文件名长度|文件名|文件内字节长度|文件字节流|
-        String name = "diagram.png";
-        FileInputStream fileInputStream = null;
+        String fileName = "diagram.png";
+        InputStream intputStream = null;
         try {
-//            fileInputStream = new FileInputStream(new File("D:\\diagram.png"));//netty每次为server分配1024的bytebuf怎么办？
-            fileInputStream = new FileInputStream(new File("D:\\diagramsmall.png"));
-            byte[] bytes = new byte[fileInputStream.available()];
-            fileInputStream.read(bytes);
+//            fileInputStream = new FileInputStream(new File("D:\\diagram.png"));// todo netty每次为server分配1024的bytebuf怎么办？
+
+            intputStream = EchoClientHandler.class.getClassLoader().getResourceAsStream("diagramsmall.png");
+            byte[] bytes = new byte[intputStream.available()];
+            intputStream.read(bytes);
 
             ByteBuf byteBuf = Unpooled.buffer();
 
-            byteBuf.writeInt(4+ name.getBytes().length +4+ bytes.length);
+            byteBuf.writeInt(packageLength(fileName, bytes));
 
-            byteBuf.writeInt("diagram1.png".getBytes().length);
-            byteBuf.writeBytes("diagram1.png".getBytes());
+            byteBuf.writeInt(fileName.getBytes().length);
+            byteBuf.writeBytes(fileName.getBytes());
 
             byteBuf.writeInt(bytes.length);
             byteBuf.writeBytes(bytes);
 
             ctx.writeAndFlush(byteBuf);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    @Override
-    public void channelRead0(ChannelHandlerContext ctx,
-                             ByteBuf in) {
-        System.out.println("̀Client received:" + ByteBufUtil
-                .hexDump(in.readBytes(in.readableBytes())));
+    private int packageLength(String fileName, byte[] bytes) {
+        return 4 + fileName.getBytes().length + 4 + bytes.length;
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx,
-                                Throwable cause) {
+    public void channelRead0(ChannelHandlerContext ctx, ByteBuf in) {
+        System.out.println("̀Client received:" + ByteBufUtil.hexDump(in.readBytes(in.readableBytes())));
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

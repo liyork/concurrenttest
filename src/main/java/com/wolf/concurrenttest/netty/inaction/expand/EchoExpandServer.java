@@ -1,9 +1,9 @@
 package com.wolf.concurrenttest.netty.inaction.expand;
 
-import com.wolf.concurrenttest.netty.inaction.IntegerToByteEncoder;
-import com.wolf.concurrenttest.netty.inaction.IntegerToStringDecoder;
-import com.wolf.concurrenttest.netty.inaction.IntegerToStringEncoder;
-import com.wolf.concurrenttest.netty.inaction.ToIntegerDecoder2;
+import com.wolf.concurrenttest.netty.inaction.stdcodec.IntegerToByteEncoder;
+import com.wolf.concurrenttest.netty.inaction.stdcodec.IntegerToStringDecoder;
+import com.wolf.concurrenttest.netty.inaction.stdcodec.IntegerToStringEncoder;
+import com.wolf.concurrenttest.netty.inaction.stdcodec.ToIntegerDecoder2;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -18,6 +18,8 @@ import java.net.InetSocketAddress;
 
 /**
  * Description:
+ * read: byte->integer->string
+ * write: integer->string->short->byte
  * <br/> Created on 9/18/17 8:06 PM
  *
  * @author 李超
@@ -30,13 +32,8 @@ public class EchoExpandServer {
     public void start() throws Exception {
         EventLoopGroup group1 = new NioEventLoopGroup();
         EventLoopGroup group2 = new NioEventLoopGroup();
-//        需要
-//                <dependency>
-//            <groupId>io.netty</groupId>
-//            <artifactId>netty-all</artifactId>
-//            <version>4.0.0.Final</version>
-//        </dependency>
-        final AttributeKey<Integer> id =null;//= new AttributeKey<Integer>("ID");
+
+        final AttributeKey<Integer> id = AttributeKey.newInstance("ID");
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(group1, group2)
@@ -53,15 +50,15 @@ public class EchoExpandServer {
                                 throws Exception {
                             System.out.println("connected...; Client:" + ch.remoteAddress());
                             ch.pipeline()
-//                                    .addLast(new ToIntegerDecoder())
-                                    .addLast(new ToIntegerDecoder2())//1
-                                    .addLast(new IntegerToStringDecoder())//2
-                                    .addLast(new EchoServerExpandHandler())//在中间，如果是读操作则从当前开始向后寻找decoder，如果是写操作则从当前开始向前寻找encoder
+                                    //.addLast(new ToIntegerDecoder())
+                                    .addLast(new ToIntegerDecoder2())//inbound-1
+                                    .addLast(new IntegerToStringDecoder())//inbound-2
+                                    // 在中间，如果是读操作则从当前开始向后(到tail方向)寻找decoder，如果是写操作则从当前开始向前(到head方向)寻找encoder
+                                    .addLast(new EchoServerExpandHandler())//inbound-3
 
-                                    .addFirst(new IntegerToStringEncoder())//2
-                                    .addFirst(new IntegerToByteEncoder());//1
+                                    .addFirst(new IntegerToStringEncoder())//outbound-1,write是向着head方向
+                                    .addFirst(new IntegerToByteEncoder());//outbound-2
 //                                    .addFirst(new SslChannelInitializer())//1
-
 
 //                            ByteToByteCodec
 //                            ByteToMessageCodec
@@ -69,6 +66,7 @@ public class EchoExpandServer {
 
                             //从channel中获取属性
                             Integer idValue = ch.attr(id).get();
+                            System.out.println("get attr from channel, idValue:" + idValue);
                         }
                     });
             //设定底层属性
@@ -78,8 +76,7 @@ public class EchoExpandServer {
             b.attr(id, 123456);
 
             ChannelFuture f = b.bind().sync();
-            System.out.println(EchoExpandServer.class.getName() +
-                    " started and listen on " + f.channel().localAddress());
+            System.out.println(EchoExpandServer.class.getName() + " started and listen on " + f.channel().localAddress());
             f.channel().closeFuture().sync();
         } finally {
             group1.shutdownGracefully().sync();

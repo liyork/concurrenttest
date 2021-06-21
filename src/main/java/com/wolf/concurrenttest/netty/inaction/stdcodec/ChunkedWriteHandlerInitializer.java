@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction;
+package com.wolf.concurrenttest.netty.inaction.stdcodec;
 
 import io.netty.channel.*;
 import io.netty.handler.stream.ChunkedStream;
@@ -8,7 +8,8 @@ import java.io.File;
 import java.io.FileInputStream;
 
 /**
- * Description:ChunkedFile/ChunkedNioFile/ChunkedNioStream/ChunkedStream
+ * Description: want to send some other chunk of data not a file
+ * ChunkedFile/ChunkedNioFile/ChunkedNioStream/ChunkedStream
  * <br/> Created on 9/25/17 2:16 AM
  *
  * @author 李超
@@ -28,13 +29,11 @@ public class ChunkedWriteHandlerInitializer extends ChannelInitializer<Channel> 
         pipeline.addLast(new WriteStreamHandler());
     }
 
-    public final class WriteStreamHandler
-            extends ChannelInboundHandlerAdapter {
+    public final class WriteStreamHandler extends ChannelInboundHandlerAdapter {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            super.channelActive(ctx);
-            ctx.writeAndFlush(
-                    new ChunkedStream(new FileInputStream(file)));
+            // super.channelActive(ctx); 这里要是先调用则就向下一个handler了，下面似乎也就不能执行了
+            ctx.writeAndFlush(new ChunkedStream(new FileInputStream(file)));
         }
     }
 

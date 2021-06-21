@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
 
 /**
- * Description:压缩
+ * Description:解压
  * <br/> Created on 9/24/17 2:46 AM
  *
  * @author 李超

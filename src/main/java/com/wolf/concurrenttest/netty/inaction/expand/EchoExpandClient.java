@@ -26,30 +26,26 @@ public class EchoExpandClient {
             Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
-                    .remoteAddress(new InetSocketAddress("127.0.0.1",65535))
+                    .remoteAddress(new InetSocketAddress("127.0.0.1", 65535))
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             System.out.println("EchoClient initChannel... ");
-                            ch.pipeline().addLast(
-                                    new EchoClientExpandHandler());
+                            ch.pipeline().addLast(new EchoClientExpandHandler());
                         }
                     });
             System.out.println("111");
             ChannelFuture f = b.connect().sync();
             System.out.println("222");
-            f.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture channelFuture)
-                        throws Exception {
-                    if (channelFuture.isSuccess()) {
-                        System.out.println("Connection established");
-                    } else {
-                        System.err.println("Connection attempt failed");
-                        channelFuture.cause().printStackTrace();
-                    }
-                } });
+            f.addListener((ChannelFutureListener) channelFuture -> {
+                if (channelFuture.isSuccess()) {
+                    System.out.println("Connection established");
+                } else {
+                    System.err.println("Connection attempt failed");
+                    channelFuture.cause().printStackTrace();
+                }
+            });
             f.channel().closeFuture().sync();
             System.out.println("333");
         } finally {
@@ -60,6 +56,4 @@ public class EchoExpandClient {
     public static void main(String[] args) throws Exception {
         new EchoExpandClient().start();
     }
-
-
 }
