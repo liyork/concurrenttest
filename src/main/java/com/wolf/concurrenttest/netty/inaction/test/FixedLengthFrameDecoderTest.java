@@ -7,7 +7,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Description:
+ * Description: 用EmbeddedChannel测试FixedLengthFrameDecoder
+ * EmbeddedChannel开始写入inbound/outbound，最后再读取inbound/outbound的结果，验证中间的handler处理是否正确
  * <br/> Created on 9/25/17 8:02 PM
  *
  * @author 李超
@@ -15,22 +16,24 @@ import org.junit.Test;
  */
 public class FixedLengthFrameDecoderTest {
 
+    // 一次写入9字节
     @Test
     public void testFramesDecoded() {
         ByteBuf buf = Unpooled.buffer();
         for (int i = 0; i < 9; i++) {
             buf.writeByte(i);
         }
-        ByteBuf input = buf.duplicate();//使用这个代表两个指针指向同一个内存，下面channel.finish()会将buf的refCnt=0，就不能用了,
-        // 后来发现channel.writeInbound(input)中代码会buffer.release，所以testFramesDecoded2没事
-//        ByteBuf input = buf.copy();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new FixedLengthFrameDecoder(3));
-
+        // 返回的是UnpooledDuplicatedByteBuf就是对buf的包装。
+        //ByteBuf input = buf.duplicate();// 错误：使用这个代表两个byteBuf公用底层内存，当下面channel.writeInbound后，到ByteToMessageDecoder时会将buf的refCnt=0，就不能用了,
+        ByteBuf input = buf.copy();// 正确
+        // create a new EmbeddedChannel and feed in the FixedLengthFrameDecoder to test it
+        EmbeddedChannel channel = new EmbeddedChannel(new FixedLengthFrameDecoder(3));
 
         // write bytes
-        Assert.assertTrue(channel.writeInbound(input));//模拟写入
-        Assert.assertTrue(channel.finish());
+        // 写入后，会流经ByteToMessageDecoder->FixedLengthFrameDecoder读完->ByteToMessageDecoder的cumulation.release()
+        Assert.assertTrue(channel.writeInbound(input));//模拟写入inbound数据
+        Assert.assertTrue(channel.finish());// mark the channel finished，就不能写入了
+
         // read messages
 //        System.out.println(buf.readableBytes());
         Assert.assertEquals(buf.readBytes(3), channel.readInbound());
@@ -39,6 +42,7 @@ public class FixedLengthFrameDecoderTest {
         Assert.assertNull(channel.readInbound());
     }
 
+    // 两次写入9字节
     @Test
     public void testFramesDecoded2() {
         ByteBuf buf = Unpooled.buffer();
@@ -46,9 +50,9 @@ public class FixedLengthFrameDecoderTest {
             buf.writeByte(i);
         }
         ByteBuf input = buf.duplicate();
-        EmbeddedChannel channel = new EmbeddedChannel(new
-                FixedLengthFrameDecoder(3));
+        EmbeddedChannel channel = new EmbeddedChannel(new FixedLengthFrameDecoder(3));
 
+        // 用的是readBytes会构造新的byteBuf，所以下面再readBytes时不会报错
         Assert.assertFalse(channel.writeInbound(input.readBytes(2)));//只能写入3个以上才返回true
         Assert.assertTrue(channel.writeInbound(input.readBytes(7)));
         Assert.assertTrue(channel.finish());

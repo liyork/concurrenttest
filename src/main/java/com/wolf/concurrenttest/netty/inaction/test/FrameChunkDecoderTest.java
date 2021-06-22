@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Description:
+ * Description: 测试FrameChunkDecoder
  * <br/> Created on 9/26/17 9:55 AM
  *
  * @author 李超
@@ -23,22 +23,27 @@ public class FrameChunkDecoderTest {
             buf.writeByte(i);
         }
         ByteBuf input = buf.duplicate();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new FrameChunkDecoder(3));
+        EmbeddedChannel channel = new EmbeddedChannel(new FrameChunkDecoder(3));
 
+        // 如何判断true/false?
+        // tailContext->onUnhandledInboundMessage这时EmbeddedChannelPipeline会触发handleInboundMessage->inboundMessages().add(msg)这样就收集结果了
         Assert.assertTrue(channel.writeInbound(input.readBytes(2)));//ArrayDeque
         try {
+            // 捕获FrameChunkDecoder抛出的异常原理
+            // channelRead过程中若有异常则notifyHandlerException->invokeExceptionCaught->到tailContext->exceptionCaught->onUnhandledInboundException->
+            //EmbeddedChannelPipeline.onUnhandledInboundException会recordException->flushInbound->checkException->PlatformDependent.throwException
+            //这样就是EmbeddedChannelPipeline捕获异常并再次抛出异常
             channel.writeInbound(input.readBytes(4));
             Assert.fail();
         } catch (TooLongFrameException e) {
-// expected
+            System.out.println("error:" + e.getMessage());
         }
         Assert.assertTrue(channel.writeInbound(input.readBytes(3)));
         Assert.assertTrue(channel.finish());
+
         // Read frames                                                  
         Assert.assertEquals(buf.readBytes(2), channel.readInbound());
-        Assert.assertEquals(buf.skipBytes(4).readBytes(3),
-                channel.readInbound());
+        Assert.assertEquals(buf.skipBytes(4).readBytes(3), channel.readInbound());
     }
 }
 
