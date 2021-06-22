@@ -12,7 +12,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * Description:
+ * Description: SslContext工厂
  * <br/> Created on 9/27/17 11:35 AM
  *
  * @author 李超
@@ -45,16 +45,14 @@ public class SecureChatSslContextFactory {
             serverContext = SSLContext.getInstance(PROTOCOL);
             serverContext.init(kmf.getKeyManagers(), null, null);
         } catch (Exception e) {
-            throw new Error(
-                    "Failed to initialize the server-side SSLContext", e);
+            throw new Error("Failed to initialize the server-side SSLContext", e);
         }
 
         try {
             clientContext = SSLContext.getInstance(PROTOCOL);
             clientContext.init(null, SecureChatTrustManagerFactory.getTrustManagers(), null);
         } catch (Exception e) {
-            throw new Error(
-                    "Failed to initialize the client-side SSLContext", e);
+            throw new Error("Failed to initialize the client-side SSLContext", e);
         }
 
         SERVER_CONTEXT = serverContext;
@@ -63,22 +61,20 @@ public class SecureChatSslContextFactory {
 
     public static SSLContext getServerContext() {
         X509TrustManager x509m = new X509TrustManager() {
-
             @Override
             public X509Certificate[] getAcceptedIssuers() {
                 return null;
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain,
-                                           String authType) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             }
 
             @Override
-            public void checkClientTrusted(X509Certificate[] chain,
-                                           String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             }
         };
+
         // 获取一个SSLContext实例
         SSLContext s = null;
         try {
@@ -88,8 +84,7 @@ public class SecureChatSslContextFactory {
         }
         // 初始化SSLContext实例
         try {
-            s.init(null, new TrustManager[] { x509m },
-                    new java.security.SecureRandom());
+            s.init(null, new TrustManager[]{x509m}, new java.security.SecureRandom());
         } catch (KeyManagementException e) {
             e.printStackTrace();
         }

@@ -14,7 +14,10 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 import java.net.InetSocketAddress;
 
 /**
- * Description:
+ * Description: 启动服务
+ * 使用浏览器请求->http://localhost:4444
+ * 点击右侧Connect按钮->输入左侧内容->点击send
+ * 打开多个页面，可以看到一个窗口send后，另外窗口可以看到
  * <br/> Created on 9/27/17 9:17 AM
  *
  * @author 李超
@@ -22,8 +25,8 @@ import java.net.InetSocketAddress;
  */
 public class ChatServer {
 
-    private final ChannelGroup channelGroup =
-            new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
+    // hold all connected WebSocket clients
+    private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
     private final EventLoopGroup group = new NioEventLoopGroup();
     private Channel channel;
 
@@ -33,13 +36,12 @@ public class ChatServer {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(createInitializer(channelGroup));
         ChannelFuture future = bootstrap.bind(address);
-        future.syncUninterruptibly();
+        future.syncUninterruptibly();// 等待绑定完成
         channel = future.channel();
         return future;
     }
 
-    protected ChannelInitializer<Channel> createInitializer(
-            ChannelGroup group) {
+    protected ChannelInitializer<Channel> createInitializer(ChannelGroup group) {
         return new ChatServerInitializer(group);
     }
 
@@ -52,16 +54,11 @@ public class ChatServer {
     }
 
     public static void main(String[] args) {
-
         int port = 4444;
         final ChatServer endpoint = new ChatServer();
         ChannelFuture future = endpoint.start(new InetSocketAddress(port));
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                endpoint.destroy();
-            }
-        });
+
+        Runtime.getRuntime().addShutdownHook(new Thread(endpoint::destroy));
         future.channel().closeFuture().syncUninterruptibly();
     }
 

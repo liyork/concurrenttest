@@ -8,7 +8,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 /**
- * Description:
+ * Description: 继承ChatServerInitializer并添加一个加密handler，体现netty高可扩展性，使用pipeline
  * <br/> Created on 9/27/17 11:19 AM
  *
  * @author 李超
@@ -17,8 +17,7 @@ import javax.net.ssl.SSLEngine;
 public class SecureChatServerInitializer extends ChatServerInitializer {
     private final SSLContext context;
 
-    public SecureChatServerInitializer(ChannelGroup group, SSLContext
-            context) {
+    public SecureChatServerInitializer(ChannelGroup group, SSLContext context) {
         super(group);
         this.context = context;
     }

@@ -10,7 +10,7 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 
 /**
- * Description:
+ * Description: TrustManager工厂
  * <br/> Created on 9/27/17 11:36 AM
  *
  * @author 李超
@@ -30,16 +30,14 @@ public class SecureChatTrustManagerFactory extends TrustManagerFactorySpi {
             // You should do something in the real world.
             // You will reach here only if you enabled client certificate auth,
             // as described in SecureChatSslContextFactory.
-            System.err.println(
-                    "UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
+            System.err.println("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
         }
 
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) {
             // Always trust - it is an example.
             // You should do something in the real world.
-            System.err.println(
-                    "UNKNOWN SERVER CERTIFICATE: " + chain[0].getSubjectDN());
+            System.err.println("UNKNOWN SERVER CERTIFICATE: " + chain[0].getSubjectDN());
         }
     };
 
@@ -58,8 +56,7 @@ public class SecureChatTrustManagerFactory extends TrustManagerFactorySpi {
     }
 
     @Override
-    protected void engineInit(ManagerFactoryParameters managerFactoryParameters)
-            throws InvalidAlgorithmParameterException {
+    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws InvalidAlgorithmParameterException {
         // Unused
     }
 }
