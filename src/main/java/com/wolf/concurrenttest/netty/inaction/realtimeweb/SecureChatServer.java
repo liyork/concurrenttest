@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 
 /**
  * Description: 使用安全服务，使用SSL/TLS加密网络交互
+ * https://localhost:4444
  * todo 通过https和client都未测试成功，后期进行验证
  * <br/> Created on 9/27/17 11:22 AM
  *

@@ -16,8 +16,7 @@ import javax.net.ssl.SSLEngine;
  * @author 李超
  * @since 1.0.0
  */
-public class SpdyChannelInitializer extends
-        ChannelInitializer<SocketChannel> {
+public class SpdyChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final SSLContext context;
 
     public SpdyChannelInitializer(SSLContext context) {
@@ -29,16 +28,12 @@ public class SpdyChannelInitializer extends
         ChannelPipeline pipeline = ch.pipeline();
         SSLEngine engine = context.createSSLEngine();
         engine.setUseClientMode(false);
+
         NextProtoNego.put(engine, new DefaultServerProvider());
         NextProtoNego.debug = true;
+
         pipeline.addLast("sslHandler", new SslHandler(engine));
-//        需要
-//                <dependency>
-//            <groupId>io.netty</groupId>
-//            <artifactId>netty-all</artifactId>
-//            <version>4.0.0.Final</version>
-//        </dependency>
-//        pipeline.addLast("chooser",
-//                new DefaultSpdyOrHttpChooser(1024 * 1024, 1024 * 1024));
+        // this implementation will detect the protocol, add the correct ChannelHandlers in the ChannelPpipeline and remove itself
+        //pipeline.addLast("chooser", new DefaultSpdyOrHttpChooser(1024 * 1024, 1024 * 1024));
     }
 }

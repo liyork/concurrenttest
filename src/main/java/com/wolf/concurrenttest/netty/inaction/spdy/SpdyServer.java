@@ -18,7 +18,6 @@ import java.net.InetSocketAddress;
  * @since 1.0.0
  */
 public class SpdyServer {
-
     private final NioEventLoopGroup group = new NioEventLoopGroup();
     private final SSLContext context;
     private Channel channel;
@@ -31,7 +30,7 @@ public class SpdyServer {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(group)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new SpdyChannelInitializer(context));
+                .childHandler(new SpdyChannelInitializer(context));// sets up the ChannelPipeline once the Channel was accepted
         ChannelFuture future = bootstrap.bind(address);
         future.syncUninterruptibly();
         channel = future.channel();
@@ -46,18 +45,13 @@ public class SpdyServer {
     }
 
     public static void main(String[] args) {
-
         int port = 4444;
         SSLContext context = SecureChatSslContextFactory.getServerContext();
-        final SpdyServer endpoint = new SpdyServer(context);
+        final SpdyServer endpoint = new SpdyServer(context);// pass in the SSLContext to use for encryption
         ChannelFuture future = endpoint.start(new InetSocketAddress(port));
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                endpoint.destroy();
-            }
 
-        });
+        // destroy the server which means it close the channel and shutdown the NioEventLoopGroup
+        Runtime.getRuntime().addShutdownHook(new Thread(endpoint::destroy));
         future.channel().closeFuture().syncUninterruptibly();
     }
 }
