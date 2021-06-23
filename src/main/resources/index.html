@@ -24,6 +24,7 @@
             log.append(msg + " \n").scrollTop(log[0].scrollHeight - log.height());
         }
         $(function () {
+            // 使用ws协议或wss协议
             $('#url').val((location.protocol.indexOf('https') == -1 ? 'ws://' : 'wss://') + location.host + '/ws')
 
             if (!WebSocket) {

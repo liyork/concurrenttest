@@ -12,6 +12,8 @@ import java.net.InetSocketAddress;
 
 /**
  * Description:
+ * https://localhost:4444用不同浏览器打开
+ * url输入：chrome://net-internals/#spdy
  * <br/> Created on 9/28/17 10:37 AM
  *
  * @author 李超
