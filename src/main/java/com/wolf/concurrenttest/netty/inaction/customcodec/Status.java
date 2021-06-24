@@ -1,7 +1,8 @@
 package com.wolf.concurrenttest.netty.inaction.customcodec;
 
 /**
- * Description:
+ * Description: Possible Memcached operation codes and response statuses
+ * 2byte
  * <br/> Created on 9/28/17 8:18 PM
  *
  * @author 李超

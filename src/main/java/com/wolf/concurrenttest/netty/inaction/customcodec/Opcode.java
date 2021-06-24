@@ -1,7 +1,7 @@
 package com.wolf.concurrenttest.netty.inaction.customcodec;
 
 /**
- * Description:
+ * Description: 操作码，占1byte
  * <br/> Created on 9/28/17 8:18 PM
  *
  * @author 李超

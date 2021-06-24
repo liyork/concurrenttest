@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Description:
+ * Description: 测试Memcached响应解码器
  *  Testing with fragmented and non fragmented data
  *  Test validation if received data / send data if needed
  * <br/> Created on 9/29/17 7:12 PM
@@ -18,19 +18,21 @@ import org.junit.Test;
  */
 public class MemcachedResponseDecoderTest {
 
+    // 正常测试解码器
     @Test
     public void testMemcachedResponseDecoder() {
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new MemcachedResponseDecoder());
+        EmbeddedChannel channel = new EmbeddedChannel(new MemcachedResponseDecoder());
 
         //模拟memcached返回数据
         byte magic = 1;
         byte opCode = Opcode.SET;
         byte dataType = 0;
-        byte[] key = "Key1".getBytes(CharsetUtil.US_ASCII);
-        byte[] body = "Value".getBytes(CharsetUtil.US_ASCII);
+
+        byte[] key = "Key1".getBytes(CharsetUtil.UTF_8);
+        byte[] body = "Value".getBytes(CharsetUtil.UTF_8);
         int id = (int) System.currentTimeMillis();
         long cas = System.currentTimeMillis();
+
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(magic);
         buffer.writeByte(opCode);
@@ -44,13 +46,11 @@ public class MemcachedResponseDecoderTest {
         buffer.writeBytes(key);
         buffer.writeBytes(body);
 
-        Assert.assertTrue(channel.writeInbound(buffer));
+        Assert.assertTrue(channel.writeInbound(buffer));// write the buffer to it
 
-        MemcachedResponse response = (MemcachedResponse)
-                channel.readInbound();
-
-        assertResponse(response, magic, opCode, dataType,
-                Status.KEY_EXISTS, 0, 0, id, cas, key, body);
+        MemcachedResponse response = channel.readInbound();// check if a new MemcachedResponse was created by assert the return value
+        assertResponse(response, magic, opCode, dataType, Status.KEY_EXISTS, 0, 0, id, cas, key, body);
+        System.out.println("finish test");
     }
 
     /**
@@ -58,15 +58,17 @@ public class MemcachedResponseDecoderTest {
      */
     @Test
     public void testMemcachedResponseDecoderFragments() {
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new MemcachedResponseDecoder());
+        EmbeddedChannel channel = new EmbeddedChannel(new MemcachedResponseDecoder());
+
         byte magic = 1;
         byte opCode = Opcode.SET;
         byte dataType = 0;
-        byte[] key = "Key1".getBytes(CharsetUtil.US_ASCII);
-        byte[] body = "Value".getBytes(CharsetUtil.US_ASCII);
+
+        byte[] key = "Key1".getBytes(CharsetUtil.UTF_8);
+        byte[] body = "Value".getBytes(CharsetUtil.UTF_8);
         int id = (int) System.currentTimeMillis();
         long cas = System.currentTimeMillis();
+
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeByte(magic);
         buffer.writeByte(opCode);
@@ -80,35 +82,31 @@ public class MemcachedResponseDecoderTest {
         buffer.writeBytes(key);
         buffer.writeBytes(body);
 
-        ByteBuf fragment1 = buffer.readBytes(8);
+        ByteBuf fragment1 = buffer.readBytes(8);// split the Buffer into 3 fragments
         ByteBuf fragment2 = buffer.readBytes(24);
         ByteBuf fragment3 = buffer;
 
-        Assert.assertFalse(channel.writeInbound(fragment1));
-        Assert.assertFalse(channel.writeInbound(fragment2));
-        Assert.assertTrue(channel.writeInbound(fragment3));
+        Assert.assertFalse(channel.writeInbound(fragment1));// write the first fragment, check that no new MemcachedResponse was created, as not all data is ready yet
+        Assert.assertFalse(channel.writeInbound(fragment2));// write the second fragment, check
+        Assert.assertTrue(channel.writeInbound(fragment3));// write the last fragment, check that a new MemcachedResponse was created as we finally received all data
 
-        MemcachedResponse response = (MemcachedResponse)
-                channel.readInbound();
-        assertResponse(response, magic, opCode, dataType,
-                Status.KEY_EXISTS, 0, 0, id, cas, key, body);
-
+        MemcachedResponse response = channel.readInbound();
+        assertResponse(response, magic, opCode, dataType, Status.KEY_EXISTS, 0, 0, id, cas, key, body);
+        System.out.println("finish test");
     }
 
-    private static void assertResponse(MemcachedResponse response, byte
-            magic, byte opCode, byte dataType, short status, int expires, int flags, int
-                                               id, long cas, byte[] key, byte[] body) {
+    private static void assertResponse(
+            MemcachedResponse response, byte magic, byte opCode, byte dataType, short status,
+            int expires, int flags, int id, long cas, byte[] key, byte[] body) {
         Assert.assertEquals(magic, response.magic());
-        Assert.assertArrayEquals(key,
-                response.key().getBytes(CharsetUtil.US_ASCII));
+        Assert.assertArrayEquals(key, response.key().getBytes(CharsetUtil.UTF_8));
         Assert.assertEquals(opCode, response.opCode());
         Assert.assertEquals(dataType, response.dataType());
         Assert.assertEquals(status, response.status());
         Assert.assertEquals(cas, response.cas());
         Assert.assertEquals(expires, response.expires());
         Assert.assertEquals(flags, response.flags());
-        Assert.assertArrayEquals(body,
-                response.data().getBytes(CharsetUtil.US_ASCII));
+        Assert.assertArrayEquals(body, response.data().getBytes(CharsetUtil.UTF_8));
         Assert.assertEquals(id, response.id());
     }
 }

@@ -1,7 +1,7 @@
 package com.wolf.concurrenttest.netty.inaction.customcodec;
 
 /**
- * Description:
+ * Description: Memcached响应POJO
  * <br/> Created on 9/29/17 8:34 AM
  *
  * @author 李超
@@ -11,12 +11,12 @@ public class MemcachedResponse {
 
     private byte magic;
     private byte opCode;
-    private byte dataType;
+    private byte dataType;// indicate if its binary or text based
     private short status;
-    private int id;
+    private int id;// unique id
     private long cas;
     private int flags;
-    private int expires;
+    private int expires;// indicate if the value stored for this response will e expire at some point
     private String key;
     private String data;
 
