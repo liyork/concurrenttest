@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.expand;
+package com.wolf.concurrenttest.netty.inaction.pipeline.handlerchain;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -13,7 +13,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * @author 李超
  * @since 1.0.0
  */
-public class EchoClientExpandHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class HandlerChainClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private ChannelHandlerContext ctx;
 

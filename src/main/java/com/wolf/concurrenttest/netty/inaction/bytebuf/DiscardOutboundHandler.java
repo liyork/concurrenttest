@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction;
+package com.wolf.concurrenttest.netty.inaction.bytebuf;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;

@@ -1,6 +1,5 @@
 package com.wolf.concurrenttest.netty.inaction.bytebuf;
 
-import com.wolf.concurrenttest.netty.inaction.DiscardOutboundHandler;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioServerSocketChannel;

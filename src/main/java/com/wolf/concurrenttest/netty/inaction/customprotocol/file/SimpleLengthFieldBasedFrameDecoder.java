@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.customprotocol;
+package com.wolf.concurrenttest.netty.inaction.customprotocol.file;
 
 
 import io.netty.buffer.ByteBuf;

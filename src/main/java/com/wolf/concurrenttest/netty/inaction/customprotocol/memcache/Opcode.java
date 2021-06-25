@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.customcodec;
+package com.wolf.concurrenttest.netty.inaction.customprotocol.memcache;
 
 /**
  * Description: 操作码，占1byte

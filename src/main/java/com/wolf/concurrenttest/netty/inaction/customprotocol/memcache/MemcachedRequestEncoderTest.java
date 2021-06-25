@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.customcodec;
+package com.wolf.concurrenttest.netty.inaction.customprotocol.memcache;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;

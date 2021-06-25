@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.expand;
+package com.wolf.concurrenttest.netty.inaction.pipeline.handlerchain;
 
 import com.wolf.concurrenttest.netty.inaction.stdcodec.IntegerToByteEncoder;
 import com.wolf.concurrenttest.netty.inaction.stdcodec.IntegerToStringDecoder;
@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
  * @author 李超
  * @since 1.0.0
  */
-public class EchoExpandServer {
+public class HandlerChainServer {
 
     private int port = 65535;
 
@@ -54,7 +54,7 @@ public class EchoExpandServer {
                                     .addLast(new ToIntegerDecoder2())//inbound-1
                                     .addLast(new IntegerToStringDecoder())//inbound-2
                                     // 在中间，如果是读操作则从当前开始向后(到tail方向)寻找decoder，如果是写操作则从当前开始向前(到head方向)寻找encoder
-                                    .addLast(new EchoServerExpandHandler())//inbound-3
+                                    .addLast(new HandlerChainServerHandler())//inbound-3
 
                                     .addFirst(new IntegerToStringEncoder())//outbound-1,write是向着head方向
                                     .addFirst(new IntegerToByteEncoder());//outbound-2
@@ -76,7 +76,7 @@ public class EchoExpandServer {
             b.attr(id, 123456);
 
             ChannelFuture f = b.bind().sync();
-            System.out.println(EchoExpandServer.class.getName() + " started and listen on " + f.channel().localAddress());
+            System.out.println(HandlerChainServer.class.getName() + " started and listen on " + f.channel().localAddress());
             f.channel().closeFuture().sync();
         } finally {
             group1.shutdownGracefully().sync();
@@ -85,6 +85,6 @@ public class EchoExpandServer {
     }
 
     public static void main(String[] args) throws Exception {
-        new EchoExpandServer().start();
+        new HandlerChainServer().start();
     }
 }

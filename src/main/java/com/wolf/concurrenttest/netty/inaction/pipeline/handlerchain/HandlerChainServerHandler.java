@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.netty.inaction.expand;
+package com.wolf.concurrenttest.netty.inaction.pipeline.handlerchain;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -12,7 +12,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author 李超
  * @since 1.0.0
  */
-public class EchoServerExpandHandler extends ChannelInboundHandlerAdapter {
+public class HandlerChainServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         System.out.println("EchoServerExpandHandler received: " + msg);

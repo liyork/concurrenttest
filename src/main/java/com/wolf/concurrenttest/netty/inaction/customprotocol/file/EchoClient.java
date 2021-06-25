@@ -1,8 +1,7 @@
-package com.wolf.concurrenttest.netty.inaction.expand;
+package com.wolf.concurrenttest.netty.inaction.customprotocol.file;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -18,9 +17,10 @@ import java.net.InetSocketAddress;
  * @author 李超
  * @since 1.0.0
  */
-public class EchoExpandClient {
+public class EchoClient {
 
-    public void start() throws Exception {
+    public static void main(String[] args) throws InterruptedException {
+
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
@@ -32,20 +32,12 @@ public class EchoExpandClient {
                         public void initChannel(SocketChannel ch)
                                 throws Exception {
                             System.out.println("EchoClient initChannel... ");
-                            ch.pipeline().addLast(new EchoClientExpandHandler());
+                            ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
             System.out.println("111");
             ChannelFuture f = b.connect().sync();
             System.out.println("222");
-            f.addListener((ChannelFutureListener) channelFuture -> {
-                if (channelFuture.isSuccess()) {
-                    System.out.println("Connection established");
-                } else {
-                    System.err.println("Connection attempt failed");
-                    channelFuture.cause().printStackTrace();
-                }
-            });
             f.channel().closeFuture().sync();
             System.out.println("333");
         } finally {
@@ -53,7 +45,4 @@ public class EchoExpandClient {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        new EchoExpandClient().start();
-    }
 }
