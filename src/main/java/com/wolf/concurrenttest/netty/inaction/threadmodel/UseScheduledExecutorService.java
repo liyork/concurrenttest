@@ -8,7 +8,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Description:may not accurate,if need accurate use the ScheduledExecutorService in jdk
+ * Description: 演示如何调度任务
+ * may not accurate,if need accurate use the ScheduledExecutorService in jdk
  * <br/> Created on 9/30/17 7:35 PM
  *
  * @author 李超
@@ -16,45 +17,36 @@ import java.util.concurrent.TimeUnit;
  */
 public class UseScheduledExecutorService {
 
+    // 用jdk去定时任务
     public void testBase() {
-        ScheduledExecutorService executor = Executors
-                .newScheduledThreadPool(10);
+        // uses 10 threads
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
         ScheduledFuture<?> future = executor.schedule(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        System.out.println("Now it is 60 seconds later");
-                    }
-                }, 60, TimeUnit.SECONDS);
+                () -> System.out.println("Now it is 60 seconds later"),
+                60, TimeUnit.SECONDS);
 //...
 //...
         executor.shutdown();
     }
 
-    //减少线程创建，使用eventloop
+    // must shchedule tasks for later execution but still need to scale.
+    //用netty的eventloop，减少线程创建
     public void ScheduleTaskWithEventLoop() {
         Channel ch = null;
         ScheduledFuture<?> future = ch.eventLoop().schedule(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        System.out.println("Now its 60seconds later");
-                    }
-                }, 60, TimeUnit.SECONDS);
+                () -> System.out.println("Now its 60seconds later"),
+                60, TimeUnit.SECONDS);
     }
 
-    public void fixedTask() {
-
+    // schedule a task run every x seconds
+    public void fixedTask() throws InterruptedException {
         Channel ch = null;
         ScheduledFuture<?> future = ch.eventLoop()
-                .scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        System.out.println("Run every 60 seconds");
-                    }
-                }, 60, 60, TimeUnit.SECONDS);
+                .scheduleAtFixedRate(() -> System.out.println("Run every 60 seconds"),
+                        60, 60, TimeUnit.SECONDS);
 
-        //cancel
+        TimeUnit.SECONDS.sleep(5);
+        //cancel the task, which prevents it from running again
         future.cancel(false);
     }
 }
