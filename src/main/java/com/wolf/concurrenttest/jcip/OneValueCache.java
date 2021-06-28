@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.actualcombat;
+package com.wolf.concurrenttest.jcip;
 
 import net.jcip.annotations.Immutable;
 
@@ -6,27 +6,28 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
- * OneValueCache
- * <p/>
+ * Description: 展示不可变对象的线程安全性
  * Immutable holder for caching a number and its factors
+ * Created on 2021/6/27 3:25 PM
  *
- * @author Brian Goetz and Tim Peierls
+ * @author 李超
+ * @version 0.0.1
  */
 @Immutable
 public class OneValueCache {
     private final BigInteger lastNumber;
     private final BigInteger[] lastFactors;
 
-    public OneValueCache(BigInteger i,
-                         BigInteger[] factors) {
-        lastNumber = i;
-        lastFactors = Arrays.copyOf(factors, factors.length);
+    public OneValueCache(BigInteger lastNumber, BigInteger[] factors) {
+        this.lastNumber = lastNumber;
+        this.lastFactors = Arrays.copyOf(factors, factors.length);
     }
 
     public BigInteger[] getFactors(BigInteger i) {
-        if (lastNumber == null || !lastNumber.equals(i))
+        if (lastNumber == null || !lastNumber.equals(i)) {
             return null;
-        else
+        } else {
             return Arrays.copyOf(lastFactors, lastFactors.length);
+        }
     }
 }
