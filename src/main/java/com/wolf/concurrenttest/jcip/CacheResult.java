@@ -1,5 +1,6 @@
 package com.wolf.concurrenttest.jcip;
 
+import com.wolf.concurrenttest.common.TakeTimeUtils;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -26,6 +27,7 @@ public class CacheResult {
         @Override
         public BigInteger compute(String arg) throws InterruptedException {
             // after deep thought..
+            TakeTimeUtils.simulateLongTimeOperation(600000);
             return new BigInteger(arg);
         }
     }
@@ -40,7 +42,7 @@ public class CacheResult {
             this.c = c;
         }
 
-        // hashmap不安全需要用synchronized同步，但是有明显的scalability问题，只有单线程同一时间执行
+        // hashmap不安全需要用synchronized同步，但是有明显的scalability问题，只有单线程同一时间执行。可能造成大量等待
         @Override
         public synchronized V compute(A arg) throws InterruptedException {
             V result = cache.get(arg);
@@ -52,7 +54,7 @@ public class CacheResult {
         }
     }
 
-    // using ConcurrentHashMap，不过可能会有计算相同值多次的可能，就是因为对于同值，一个线程计算时可能另一线程并不能感知
+    // using ConcurrentHashMap，提高了并发量，不过可能会有计算相同值多次的可能，就是因为对于同值，一个线程计算时可能另一线程并不能感知
     class Memorizer2<A, V> implements Computable<A, V> {
         private final Map<A, V> cache = new ConcurrentHashMap<>();
         private final Computable<A, V> c;
@@ -65,7 +67,7 @@ public class CacheResult {
         @Override
         public V compute(A arg) throws InterruptedException {
             V result = cache.get(arg);
-            if (result == null) {
+            if (result == null) {//可能造成重复计算,当前线程不知道以前是否有人计算过
                 result = c.compute(arg);
                 cache.put(arg, result);
             }
@@ -87,10 +89,10 @@ public class CacheResult {
             Future<V> result = cache.get(arg);
             if (result == null) {
                 Callable<V> eval = (Callable) () -> c.compute(arg);
-                FutureTask<V> ft = new FutureTask<>(eval);
+                FutureTask<V> ft = new FutureTask<>(eval);//使用FutureTask可以得到阻塞语义，内部用aqs
                 result = ft;
                 cache.put(arg, result);
-                ft.run();// call to c.compute happens here
+                ft.run();// call to c.compute happens here //由于本方法供多线程使用，所以没有再开线程，而是直接调用run
             }
             try {
                 return result.get();
@@ -118,10 +120,10 @@ public class CacheResult {
                 if (result == null) {
                     Callable<V> eval = (Callable) () -> c.compute(arg);
                     FutureTask<V> ft = new FutureTask<>(eval);
-                    result = cache.putIfAbsent(arg, ft);
+                    result = cache.putIfAbsent(arg, ft);//保持【check-put】原子性
                     if (result == null) {  // 首次放入成功
                         result = ft;
-                        ft.run();// 执行callable
+                        ft.run();// 执行callable，//内部如果调用方抛出异常则用setException保存异常后返回
                     }
                 }
                 try {
