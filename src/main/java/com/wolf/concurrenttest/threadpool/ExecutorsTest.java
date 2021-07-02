@@ -1,6 +1,6 @@
 package com.wolf.concurrenttest.threadpool;
 
-import com.wolf.concurrenttest.cache.LaunderThrowable;
+import com.wolf.concurrenttest.jcip.FutureTaskDemo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -264,7 +264,7 @@ public class ExecutorsTest {
             // task will be cancelled below
         } catch (ExecutionException e) {
             // exception thrown in task; rethrow
-            throw LaunderThrowable.launderThrowable(e.getCause());
+            throw FutureTaskDemo.launderThrowable(e.getCause());
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
