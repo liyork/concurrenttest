@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.concurrent.*;
 
 /**
+ * todo merge xxx
  * LogWriter
  * <p/>
  * Producer-consumer logging service with no shutdown support

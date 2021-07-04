@@ -34,15 +34,15 @@ public class LogService {
     }
 
     public void stop() {
-        synchronized(this) {
+        synchronized (this) {
             isShutdown = true;//这里可以使用volatile
         }
         loggerThread.interrupt();
     }
 
     public void log(String msg) throws InterruptedException {
-        synchronized(this) {
-            if(isShutdown) throw new IllegalStateException(/*...*/);//这里可以使用volatile
+        synchronized (this) {
+            if (isShutdown) throw new IllegalStateException(/*...*/);//这里可以使用volatile
             ++reservations;//这个可以使用atomicInteger
         }
         queue.put(msg);
@@ -51,14 +51,14 @@ public class LogService {
     private class LoggerThread extends Thread {
         public void run() {
             try {
-                while(true) {
+                while (true) {
                     try {
-                        synchronized(LogService.this) {
+                        synchronized (LogService.this) {
                             //遇到关闭时，平稳关闭，防止数据丢失，也防止生产者阻塞
-                            if(isShutdown && reservations == 0) break;
+                            if (isShutdown && reservations == 0) break;
                         }
                         String msg = queue.take();
-                        synchronized(LogService.this) {
+                        synchronized (LogService.this) {
                             --reservations;
                         }
                         writer.println(msg);
