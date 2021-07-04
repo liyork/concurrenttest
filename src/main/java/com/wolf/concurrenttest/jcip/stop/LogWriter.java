@@ -1,6 +1,7 @@
 package com.wolf.concurrenttest.jcip.stop;
 
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,9 +16,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class LogWriter {
     private final BlockingQueue<String> queue;
     private final LoggerThread logger;
+    private static final int CAPACITY = 1000;
 
     public LogWriter(PrintWriter writer) {
-        this.queue = new LinkedBlockingQueue<>(1024);
+        this.queue = new LinkedBlockingQueue<>(CAPACITY);
         this.logger = new LoggerThread(writer);
     }
 
@@ -32,8 +34,8 @@ public class LogWriter {
     private class LoggerThread extends Thread {
         private final PrintWriter writer;
 
-        public LoggerThread(PrintWriter writer) {
-            this.writer = writer;
+        public LoggerThread(Writer writer) {
+            this.writer = new PrintWriter(writer, true); // autoflush
         }
 
         @Override

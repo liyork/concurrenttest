@@ -3,11 +3,13 @@ package com.wolf.concurrenttest.jcip.stop;
 import net.jcip.annotations.GuardedBy;
 
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Description: 针对LogWriter的问题，需要一个方法停止当前实例
+ * Description: Adding reliable cancellation to LogWriter
+ * 针对LogWriter的问题，需要一个方法停止当前实例
  * 还不能简单停止消息线程，因为会丢弃日志，写入线程也会阻塞在队列上
  * cancelling a producerconsumer activity requires cancelling both the producers and the consumers.
  * 但是写入线程很多也不知道如何停止
@@ -31,10 +33,10 @@ public class LogWriter2 {
     @GuardedBy("this")
     private int reservations;
 
-    public LogWriter2(PrintWriter writer) {
+    public LogWriter2(Writer writer) {
         this.queue = new LinkedBlockingQueue<>(1024);
         this.loggerThread = new LoggerThread();
-        this.writer = writer;
+        this.writer = new PrintWriter(writer);
     }
 
     public void start() {
@@ -75,7 +77,7 @@ public class LogWriter2 {
                 while (true) {
                     try {
                         synchronized (this) {
-                            // 有标志并没有provider时退出
+                            // 有标志并且没有provider时退出
                             if (isShutdown && reservations == 0) {
                                 break;
                             }
