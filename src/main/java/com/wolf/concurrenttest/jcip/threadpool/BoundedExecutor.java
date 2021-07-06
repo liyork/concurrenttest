@@ -1,4 +1,5 @@
-package com.wolf.concurrenttest.threadpool.puzzle;
+package com.wolf.concurrenttest.jcip.threadpool;
+
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -7,11 +8,12 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 
 /**
- * BoundedExecutor
- * <p/>
- * Using a Semaphore to throttle task submission
+ * Description: BoundedExecutor，
+ * 用unbounded queue+semaphore，限制提交速率
+ * Created on 2021/7/5 1:18 PM
  *
- * @author Brian Goetz and Tim Peierls
+ * @author 李超
+ * @version 0.0.1
  */
 @ThreadSafe
 public class BoundedExecutor {
@@ -26,13 +28,11 @@ public class BoundedExecutor {
     public void submitTask(final Runnable command) throws InterruptedException {
         semaphore.acquire();
         try {
-            exec.execute(new Runnable() {
-                public void run() {
-                    try {
-                        command.run();
-                    } finally {
-                        semaphore.release();
-                    }
+            exec.execute(() -> {
+                try {
+                    command.run();
+                } finally {
+                    semaphore.release();
                 }
             });
         } catch (RejectedExecutionException e) {

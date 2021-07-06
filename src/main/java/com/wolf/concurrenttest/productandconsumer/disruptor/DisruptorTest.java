@@ -4,8 +4,8 @@ import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import com.wolf.concurrenttest.jcip.threadpool.MyThreadFactory;
 import com.wolf.concurrenttest.productandconsumer.onetoone.useblockingqueue.Food;
-import com.wolf.concurrenttest.threadpool.MyThreadFactory;
 
 import java.nio.ByteBuffer;
 

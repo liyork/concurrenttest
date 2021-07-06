@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.threadpool.puzzle;
+package com.wolf.concurrenttest.jcip.threadpool.puzzle;
 
 import net.jcip.annotations.Immutable;
 
@@ -6,14 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * PuzzleNode
- * <p/>
  * Link node for the puzzle solving framework
- *
- * @author Brian Goetz and Tim Peierls
+ * represents a position that has been reached through some series of moves, holding a reference to the
+ * move that created the position and the previous node
  */
 @Immutable
-public class PuzzleNode <P, M> {
+public class PuzzleNode<P, M> {
     final P pos;
     final M move;
     final PuzzleNode<P, M> prev;
@@ -24,6 +22,7 @@ public class PuzzleNode <P, M> {
         this.prev = prev;
     }
 
+    // 向前查找得到路径结果
     List<M> asMoveList() {
         List<M> solution = new LinkedList<M>();
         for (PuzzleNode<P, M> n = this; n.move != null; n = n.prev)

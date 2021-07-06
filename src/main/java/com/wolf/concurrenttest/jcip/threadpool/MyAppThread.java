@@ -1,46 +1,49 @@
-package com.wolf.concurrenttest.threadpool;
+package com.wolf.concurrenttest.jcip.threadpool;
 
-import java.util.concurrent.atomic.*;
-import java.util.logging.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * MyAppThread
- * <p/>
- * Custom thread base class
+ * Description: Custom thread base class
+ * Created on 2021/7/5 6:29 PM
  *
- * @author Brian Goetz and Tim Peierls
+ * @author 李超
+ * @version 0.0.1
  */
 public class MyAppThread extends Thread {
     public static final String DEFAULT_NAME = "MyAppThread";
     private static volatile boolean debugLifecycle = false;
     private static final AtomicInteger created = new AtomicInteger();
     private static final AtomicInteger alive = new AtomicInteger();
-    private static final Logger log = Logger.getAnonymousLogger();
+    private static final Logger logger = LoggerFactory.getLogger(MyAppThread.class);
 
     public MyAppThread(Runnable r) {
         this(r, DEFAULT_NAME);
     }
 
-    //重写目的：修改线程名称，添加意外异常捕获机制
-    public MyAppThread(Runnable runnable, String name) {
-        super(runnable, name + "-" + created.incrementAndGet());
-        setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                log.log(Level.SEVERE, "UNCAUGHT in thread " + t.getName(), e);
-            }
-        });
+    public MyAppThread(ThreadGroup group, Runnable target, String name) {
+        super(group, target, name);
     }
 
+    //重写目的：修改线程名称，添加意外异常捕获机制
+    public MyAppThread(Runnable runnable, String name) {
+        super(runnable, name + "_" + created.incrementAndGet());
+        setUncaughtExceptionHandler((t, e) -> logger.warn("UNCAUGHT in thread " + t.getName(), e));
+    }
+
+    @Override
     public void run() {
-        // Copy debug flag to ensure consistent value throughout.
+        // copy debug flag to ensure consistent value throughout
         boolean debug = debugLifecycle;
-        if(debug) log.log(Level.FINE, "Created " + getName());
+        if (debug) logger.warn("Created " + getName());
         try {
             alive.incrementAndGet();
             super.run();
         } finally {
             alive.decrementAndGet();
-            if(debug) log.log(Level.FINE, "Exiting " + getName());
+            if (debug) logger.warn("Exiting " + getName());
         }
     }
 

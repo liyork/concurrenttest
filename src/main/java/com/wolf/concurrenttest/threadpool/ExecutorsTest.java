@@ -1,6 +1,8 @@
 package com.wolf.concurrenttest.threadpool;
 
 import com.wolf.concurrenttest.jcip.FutureTaskDemo;
+import com.wolf.concurrenttest.jcip.threadpool.MyThreadFactory;
+import com.wolf.concurrenttest.jcip.threadpool.TimingThreadPool;
 
 import java.util.ArrayList;
 import java.util.List;

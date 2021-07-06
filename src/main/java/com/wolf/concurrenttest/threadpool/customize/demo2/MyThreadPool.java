@@ -1,6 +1,6 @@
 package com.wolf.concurrenttest.threadpool.customize.demo2;
 
-import com.wolf.concurrenttest.threadpool.MyThreadFactory;
+import com.wolf.concurrenttest.jcip.threadpool.MyThreadFactory;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
