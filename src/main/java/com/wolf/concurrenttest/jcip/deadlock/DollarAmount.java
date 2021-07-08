@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.lock.deadlock;
+package com.wolf.concurrenttest.jcip.deadlock;
 
 /**
  * Description:

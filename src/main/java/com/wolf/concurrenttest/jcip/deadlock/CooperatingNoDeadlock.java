@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.lock.deadlock;
+package com.wolf.concurrenttest.jcip.deadlock;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -7,11 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * CooperatingNoDeadlock  缩小同步代码块
- * <p/>
+ * CooperatingNoDeadlock  缩小同步代码块保证仅有的操作共享数据
+ * 可能丢失原子性，不过这里可接受。要是需要则用其他技术，如构造并发对象以便单线程能执行这个代码路径
  * Using open calls to avoiding deadlock between cooperating objects
- *
- * @author Brian Goetz and Tim Peierls
  */
 class CooperatingNoDeadlock {
     @ThreadSafe
@@ -30,11 +28,11 @@ class CooperatingNoDeadlock {
 
         public void setLocation(Point location) {
             boolean reachedDestination;
-            synchronized(this) {
+            synchronized (this) {// 仅在操作共享数据时上锁
                 this.location = location;
                 reachedDestination = location.equals(destination);
             }
-            if(reachedDestination) dispatcher.notifyAvailable(this);
+            if (reachedDestination) dispatcher.notifyAvailable(this);
         }
 
     }
@@ -57,11 +55,11 @@ class CooperatingNoDeadlock {
 
         public Image getImage() {
             Set<Taxi> copy;
-            synchronized(this) {
-                copy = new HashSet<Taxi>(taxis);
+            synchronized (this) {// 拷贝数据后释放锁
+                copy = new HashSet<>(taxis);
             }
             Image image = new Image();
-            for(Taxi t : copy)
+            for (Taxi t : copy)
                 image.drawMarker(t.getLocation());
             return image;
         }

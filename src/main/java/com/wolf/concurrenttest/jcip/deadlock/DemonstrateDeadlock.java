@@ -1,13 +1,11 @@
-package com.wolf.concurrenttest.lock.deadlock;
+package com.wolf.concurrenttest.jcip.deadlock;
 
 import java.util.Random;
 
 /**
  * DemonstrateDeadlock
- * <p/>
  * Driver loop that induces deadlock under typical conditions
- *
- * @author Brian Goetz and Tim Peierls
+ * 演示死锁很容易出现
  */
 public class DemonstrateDeadlock {
     private static final int NUM_THREADS = 20;
@@ -15,27 +13,30 @@ public class DemonstrateDeadlock {
     private static final int NUM_ITERATIONS = 1000000;
 
     public static void main(String[] args) {
+        // 初始化
         final Random rnd = new Random();
         final Account[] accounts = new Account[NUM_ACCOUNTS];
-
-        for(int i = 0; i < accounts.length; i++)
+        for (int i = 0; i < accounts.length; i++) {
             accounts[i] = new Account();
+        }
 
         class TransferThread extends Thread {
             public void run() {
-                for(int i = 0; i < NUM_ITERATIONS; i++) {
+                LockOrderDeadlock lockOrderDeadlock = new LockOrderDeadlock();
+                for (int i = 0; i < NUM_ITERATIONS; i++) {
                     int fromAcct = rnd.nextInt(NUM_ACCOUNTS);
                     int toAcct = rnd.nextInt(NUM_ACCOUNTS);
                     DollarAmount amount = new DollarAmount(rnd.nextInt(1000));
                     try {
-                        InduceLockOrder.transferMoney(accounts[fromAcct], accounts[toAcct], amount);
-                    } catch (InduceLockOrder.InsufficientFundsException e) {
+                        lockOrderDeadlock.transferMemory(accounts[fromAcct], accounts[toAcct], amount);
+                    } catch (LockOrderDeadlock.InsufficientFundsException e) {
                         e.printStackTrace();
                     }
                 }
             }
         }
-        for(int i = 0; i < NUM_THREADS; i++)
+        for (int i = 0; i < NUM_THREADS; i++) {
             new TransferThread().start();
+        }
     }
 }

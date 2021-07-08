@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.jcip.threadpool;
+package com.wolf.concurrenttest.jcip.deadlock;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Description: 单线程池引发的死锁场景
+ * Description: 由于线程池使用问题导致的死锁。单线程池引发的死锁场景
  * task that deadlocks in a single-threaded Executor
  * Created on 2021/7/4 2:27 PM
  *
