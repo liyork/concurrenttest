@@ -78,6 +78,7 @@ public class ConcurrentHashMapTest {
     @Test
     public void testEquals() {
         ConcurrentHashMap<TestBean,Integer> concurrentHashMap = new ConcurrentHashMap<>();
+
         TestBean a1 = new TestBean(1, "a");
         concurrentHashMap.put(a1, 1);
         concurrentHashMap.put(new TestBean(1, "a"), 1);

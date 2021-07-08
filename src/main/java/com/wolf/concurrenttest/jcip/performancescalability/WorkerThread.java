@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
  * @version 0.0.1
  */
 public class WorkerThread extends Thread {
-    private final BlockingQueue<Runnable> queue;
+    private final BlockingQueue<Runnable> queue;// concurrentLinkedQueue性能最好
 
     public WorkerThread(BlockingQueue<Runnable> queue) {
         this.queue = queue;
