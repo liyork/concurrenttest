@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.boundbuffer;
+package com.wolf.concurrenttest.jcip.testing;
 
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
@@ -6,17 +6,16 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.concurrent.Semaphore;
 
 /**
- * BoundedBuffer
- * <p/>
- * Bounded buffer using \Semaphore
- *
+ * Bounded buffer using Semaphore
  * 单纯put和remove测试：LinkedBlockingQueue 性能高于 ArrayBlockingQueue 高于SemaphoreBoundedBuffer
- *
- * @author Brian Goetz and Tim Peierls
  */
 @ThreadSafe
 public class SemaphoreBoundedBuffer<E> {
+    // the number of elements that can be removed from the buffer
+    // 有多少元素可以取
     private final Semaphore availableItems;
+    // how many items can be inserted into the buffer
+    // 有多少空间可以放
     private final Semaphore availableSpaces;
     @GuardedBy("this")
     private final E[] items;
@@ -25,16 +24,18 @@ public class SemaphoreBoundedBuffer<E> {
     private int takePosition = 0;
 
     public SemaphoreBoundedBuffer(int capacity) {
-        if(capacity <= 0) throw new IllegalArgumentException();
+        if (capacity <= 0) throw new IllegalArgumentException();
         availableItems = new Semaphore(0);
         availableSpaces = new Semaphore(capacity);
         items = (E[]) new Object[capacity];
     }
 
+    // 是否为空，表示是否有人放入过，若有则put后availableItems会增加
     public boolean isEmpty() {
         return availableItems.availablePermits() == 0;
     }
 
+    // 是否满，每次放入则availableSpaces--，若0则表示满了
     public boolean isFull() {
         return availableSpaces.availablePermits() == 0;
     }

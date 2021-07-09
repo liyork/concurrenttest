@@ -2,8 +2,9 @@ package com.wolf.concurrenttest.thread;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Description:
@@ -18,10 +19,14 @@ import java.util.concurrent.Executors;
  */
 public class WaitNotifyTest {
 
-    public static void main(String[] args) {
-//        testBase();
-//        testFirstNodity();
-        testWhileJudge();
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        //testBase();
+        //testFirstNodity();
+        //testFutureNodity();
+        testCondition();
+        //testCondition2();
+        //testLatch();
+        //testWhileJudge();
     }
 
     private static void testBase() {
@@ -96,23 +101,112 @@ public class WaitNotifyTest {
             System.out.println("after notify");
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (lock) {
-                    try {
-                        System.out.println("begin wati");
-                        lock.wait();
-                        System.out.println("after wati");
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        new Thread(() -> {
+            synchronized (lock) {
+                try {
+                    System.out.println("begin wati");
+                    lock.wait();
+                    System.out.println("after wati");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
     }
 
+    // 解决testFirstNodity的问题
+    private static void testFutureNodity() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        Future future = executorService.submit(() -> {
+            try {
+                System.out.println("begin wati");
+                TimeUnit.SECONDS.sleep(1);
+                System.out.println("after wati");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return 111;
+        });
+
+        TimeUnit.SECONDS.sleep(5);
+        executorService.shutdown();
+
+        Object o = future.get();
+        System.out.println(o);
+    }
+
+    // todo 先notifyAll然后再await不行。
+    private static void testCondition() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ReentrantLock lock = new ReentrantLock();
+
+        Condition condition = lock.newCondition();
+
+        executorService.execute(() -> {
+            System.out.println("begin wati");
+            lock.lock();
+            condition.signalAll();
+            lock.unlock();
+            System.out.println("after wati");
+        });
+
+        TimeUnit.SECONDS.sleep(5);
+        lock.lock();
+        condition.await();
+        lock.unlock();
+
+        System.out.println(1111);
+    }
+
+    private static volatile int a = 0;
+
+    // 需要关联上state这样happen-before就能保证数据一定可见，不论谁先执行
+    private static void testCondition2() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ReentrantLock lock = new ReentrantLock();
+
+        Condition condition = lock.newCondition();
+
+        executorService.execute(() -> {
+            System.out.println("begin wati");
+            lock.lock();
+            a = 1;
+            condition.signalAll();
+            lock.unlock();
+            System.out.println("after wati");
+        });
+
+        lock.lock();
+        while (a == 0) {
+            condition.await();
+        }
+        lock.unlock();
+
+        executorService.shutdown();
+        System.out.println(1111);
+    }
+
+    // 解决testFirstNodity的问题
+    private static void testLatch() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        executorService.execute(() -> {
+            System.out.println("begin wati");
+            latch.countDown();
+            System.out.println("after wati");
+        });
+
+        TimeUnit.SECONDS.sleep(5);
+        latch.await();
+
+        executorService.shutdown();
+        System.out.println(1111);
+    }
+
     private static List<Integer> list = new ArrayList<>();
+
     //使用while进行条件判断，不然若被唤醒但是其他线程获得锁操作后，当前线程再操作，条件不再符合就应该等待不应该执行了。
     private static void testWhileJudge() {
         Object lock = new Object();
