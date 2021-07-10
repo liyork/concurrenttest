@@ -1,14 +1,15 @@
-package com.wolf.concurrenttest.boundbuffer;
+package com.wolf.concurrenttest.jcip.customsync;
 
-import net.jcip.annotations.*;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 
 /**
- * BaseBoundedBuffer
- * <p/>
- * Base class for bounded buffer implementations
- * 基本实现put和take，并没有考虑数组空和满的情况
+ * Description: Base class for bounded buffer implementations
+ * 并没有考虑数组空和满的情况
+ * Created on 2021/7/10 9:25 AM
  *
- * @author Brian Goetz and Tim Peierls
+ * @author 李超
+ * @version 0.0.1
  */
 @ThreadSafe
 public abstract class BaseBoundedBuffer<V> {
@@ -27,14 +28,18 @@ public abstract class BaseBoundedBuffer<V> {
 
     protected synchronized final void doPut(V v) {
         buf[tail] = v;
-        if(++tail == buf.length) tail = 0;
+        if (++tail == buf.length) {
+            tail = 0;
+        }
         ++count;
     }
 
     protected synchronized final V doTake() {
         V v = buf[head];
         buf[head] = null;
-        if(++head == buf.length) head = 0;
+        if (++head == buf.length) {
+            head = 0;
+        }
         --count;
         return v;
     }
