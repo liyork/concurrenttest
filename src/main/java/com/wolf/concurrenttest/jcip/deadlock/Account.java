@@ -10,18 +10,18 @@ import java.util.concurrent.locks.Lock;
  * @author 李超
  * @since 1.0.0
  */
-class Account {
+public class Account {
     public Lock lock;
 
-    void debit(DollarAmount d) {
+    public void debit(DollarAmount d) {
         //System.out.println(Thread.currentThread().getName() + " debit...");
     }
 
-    void credit(DollarAmount d) {
+    public void credit(DollarAmount d) {
         //System.out.println(Thread.currentThread().getName() + " credit...");
     }
 
-    DollarAmount getBalance() {
+    public DollarAmount getBalance() {
         Random random = new Random();
         return new DollarAmount(random.nextInt(10000000));
     }

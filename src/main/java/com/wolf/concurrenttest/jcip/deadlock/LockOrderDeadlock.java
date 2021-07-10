@@ -79,6 +79,6 @@ public class LockOrderDeadlock {
 
     }
 
-    static class InsufficientFundsException extends Exception {
+    public static class InsufficientFundsException extends Exception {
     }
 }
