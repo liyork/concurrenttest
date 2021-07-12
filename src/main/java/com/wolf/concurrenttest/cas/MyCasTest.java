@@ -1,5 +1,6 @@
 package com.wolf.concurrenttest.cas;
 
+import com.wolf.concurrenttest.jcip.atomic.SimulatedCAS;
 import net.jcip.annotations.*;
 
 import java.util.concurrent.ExecutorService;

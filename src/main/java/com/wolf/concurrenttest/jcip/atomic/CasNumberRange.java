@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.optimize.numberrange;
+package com.wolf.concurrenttest.jcip.atomic;
 
 import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
@@ -6,14 +6,12 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * CasNumberRange
- * <p/>
  * Preserving multivariable invariants using CAS
- *
+ * 解决NumberRange的问题
  * 使用cas和不变的对象一起保证不用锁而提供多线程一致性
  * 使用不可变对象的目的是封装多个可变属性最后进行一次compareAndSet
  *
- * @author Brian Goetz and Tim Peierls
+ * @see com.wolf.concurrenttest.jcip.NumberRange
  */
 @ThreadSafe
 public class CasNumberRange {
@@ -40,20 +38,20 @@ public class CasNumberRange {
     }
 
     public void setLower(int i) {
-        while(true) {
+        while (true) {
             IntPair oldv = values.get();
-            if(i > oldv.upper) throw new IllegalArgumentException("Can't set lower to " + i + " > upper");
+            if (i > oldv.upper) throw new IllegalArgumentException("Can't set lower to " + i + " > upper");
             IntPair newv = new IntPair(i, oldv.upper);
-            if(values.compareAndSet(oldv, newv)) return;
+            if (values.compareAndSet(oldv, newv)) return;
         }
     }
 
     public void setUpper(int i) {
-        while(true) {
+        while (true) {
             IntPair oldv = values.get();
-            if(i < oldv.lower) throw new IllegalArgumentException("Can't set upper to " + i + " < lower");
+            if (i < oldv.lower) throw new IllegalArgumentException("Can't set upper to " + i + " < lower");
             IntPair newv = new IntPair(oldv.lower, i);
-            if(values.compareAndSet(oldv, newv)) return;
+            if (values.compareAndSet(oldv, newv)) return;
         }
     }
 }

@@ -1,9 +1,7 @@
-package com.wolf.concurrenttest.optimize.pseudorandom;
+package com.wolf.concurrenttest.jcip.atomic.compare;
 
 /**
  * PseudoRandom
- *
- * @author Brian Goetz and Tim Peierls
  */
 public class PseudoRandom {
     int calculateNext(int prev) {

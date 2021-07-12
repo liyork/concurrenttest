@@ -1,13 +1,9 @@
-package com.wolf.concurrenttest.optimize;
+package com.wolf.concurrenttest.jcip.atomic;
 
 import net.jcip.annotations.*;
 
 /**
- * SimulatedCAS
- * <p/>
  * Simulated CAS operation
- *
- * @author Brian Goetz and Tim Peierls
  */
 
 @ThreadSafe
@@ -21,7 +17,7 @@ public class SimulatedCAS {
 
     public synchronized int compareAndSwap(int expectedValue, int newValue) {
         int oldValue = value;
-        if(oldValue == expectedValue) value = newValue;
+        if (oldValue == expectedValue) value = newValue;
         return oldValue;
     }
 

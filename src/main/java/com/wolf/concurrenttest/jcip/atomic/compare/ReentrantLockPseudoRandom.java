@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.optimize.pseudorandom;
+package com.wolf.concurrenttest.jcip.atomic.compare;
 
 import net.jcip.annotations.ThreadSafe;
 
@@ -6,11 +6,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * ReentrantLockPseudoRandom
- * <p/>
  * Random number generator using ReentrantLock
- *
- * @author Brian Goetz and Tim Peierls
  */
 @ThreadSafe
 public class ReentrantLockPseudoRandom extends PseudoRandom {
@@ -25,7 +21,8 @@ public class ReentrantLockPseudoRandom extends PseudoRandom {
         lock.lock();
         try {
             int s = seed;
-            seed = calculateNext(s);//感觉这下面的可以放在lock外，因为s和已经是局部变量
+            seed = calculateNext(s);
+            //感觉这下面的可以放在lock外，因为s和已经是局部变量
             int remainder = s % n;
             return remainder > 0 ? remainder : remainder + n;
         } finally {
