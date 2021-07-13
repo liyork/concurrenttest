@@ -1,6 +1,6 @@
 package com.wolf.concurrenttest.jcip.cancel;
 
-import com.wolf.concurrenttest.jcip.FutureTaskDemo;
+import com.wolf.concurrenttest.jcip.stdlib.FutureTaskDemo;
 
 import java.util.concurrent.*;
 

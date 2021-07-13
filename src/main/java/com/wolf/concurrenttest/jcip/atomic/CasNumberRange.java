@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 使用cas和不变的对象一起保证不用锁而提供多线程一致性
  * 使用不可变对象的目的是封装多个可变属性最后进行一次compareAndSet
  *
- * @see com.wolf.concurrenttest.jcip.NumberRange
+ * @see NumberRange
  */
 @ThreadSafe
 public class CasNumberRange {
