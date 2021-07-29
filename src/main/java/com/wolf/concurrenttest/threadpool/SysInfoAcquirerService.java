@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -777,7 +776,7 @@ public class SysInfoAcquirerService {
 
     }
 
-    @PreDestroy
+    //@PreDestroy
     public void destroy() {
         log.info("do nothing in @PreDestroy method");
     }

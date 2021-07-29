@@ -1,6 +1,5 @@
 package com.wolf.concurrenttest.jcip.threadpool.executordemo.pagerender;
 
-import com.sun.scenario.effect.ImageData;
 import com.wolf.concurrenttest.jcip.stdlib.FutureTaskDemo;
 
 import java.util.List;

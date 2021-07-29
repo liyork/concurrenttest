@@ -1,7 +1,5 @@
 package com.wolf.concurrenttest.jcip.threadpool.executordemo.pagerender;
 
-import com.sun.scenario.effect.ImageData;
-
 import java.util.List;
 
 /**
@@ -20,11 +18,5 @@ public class AbstractRenderer {
     }
 
     protected void renderText(CharSequence future) {
-    }
-
-    protected class ImageInfo {
-        public ImageData downloadImage() {
-            return null;
-        }
     }
 }

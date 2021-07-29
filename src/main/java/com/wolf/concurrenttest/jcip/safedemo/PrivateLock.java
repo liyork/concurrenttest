@@ -1,6 +1,5 @@
 package com.wolf.concurrenttest.jcip.safedemo;
 
-import apple.laf.JRSUIConstants;
 import net.jcip.annotations.GuardedBy;
 
 /**
@@ -14,11 +13,14 @@ import net.jcip.annotations.GuardedBy;
 public class PrivateLock {
     private final Object myLock = new Object();
     @GuardedBy("myLock")
-    JRSUIConstants.Widget widget;
+    Widget widget;
 
     void someMethod() {
         synchronized (myLock) {
             // access or modify the state of widget
         }
+    }
+
+    private class Widget {
     }
 }
