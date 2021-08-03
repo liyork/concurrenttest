@@ -20,6 +20,25 @@ public class HeapOOM {
     }
 
     public static void main(String[] args) throws InterruptedException {
+        //testBase();
+
+        testCatch();
+    }
+
+    // 即使catch住，也会有文件输出
+    private static void testCatch() throws InterruptedException {
+        try {
+            testBase();
+        } catch (Throwable e) {
+            System.out.println(22222);
+        } finally {
+            System.out.println(11111);
+        }
+
+        Thread.sleep(11111111);
+    }
+
+    private static void testBase() {
         ArrayList<OOMObject> list = new ArrayList<>();
         while (true) {
             list.add(new OOMObject());
