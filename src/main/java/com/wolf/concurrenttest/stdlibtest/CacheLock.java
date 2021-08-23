@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest;
+package com.wolf.concurrenttest.stdlibtest;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

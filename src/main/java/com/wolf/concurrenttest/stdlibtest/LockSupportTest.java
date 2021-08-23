@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest;
+package com.wolf.concurrenttest.stdlibtest;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;

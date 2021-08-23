@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest;
+package com.wolf.concurrenttest.stdlibtest;
 
 import org.junit.Test;
 

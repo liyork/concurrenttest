@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest;
+package com.wolf.concurrenttest.stdlibtest;
 
 /**
  * Description:自己测试，根本不可能有第一次cas之后出现，head指向第一个节点，tail还指向最初节点并且next还是最初节点！也就根本不会遇到else if (p == q)

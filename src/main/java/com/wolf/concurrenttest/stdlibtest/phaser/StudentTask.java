@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest.phaser;
+package com.wolf.concurrenttest.stdlibtest.phaser;
 
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;

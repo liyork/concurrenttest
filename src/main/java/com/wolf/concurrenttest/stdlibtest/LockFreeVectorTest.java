@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.tooltest;
+package com.wolf.concurrenttest.stdlibtest;
 
 import com.wolf.concurrenttest.actualcombat.LockFreeVector;
 
