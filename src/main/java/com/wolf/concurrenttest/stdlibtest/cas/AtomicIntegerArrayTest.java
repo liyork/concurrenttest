@@ -1,4 +1,4 @@
-package com.wolf.concurrenttest.cas;
+package com.wolf.concurrenttest.stdlibtest.cas;
 
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
