@@ -46,14 +46,14 @@ public class ThreadTest {
 
 //        testDaemon();
 //        testSleepUseTimeUnit();
-        testYield();
+//        testYield();
 
 //        testWaitAndSleep();
 
 ////        testThis();
 ////        testIsAlive();
 //
-//        testJoin1();
+        testJoin1();
 ////        testJoin2();
 //        testSimulateCountDownLatch();
 ////        testWaitShouldInSynScope();
@@ -314,7 +314,8 @@ public class ThreadTest {
         // 所以join中判断thread是否存活，然后跳出来。
 //        subThread.join();
 
-        subThread.join(1000);//带超时时间，进入wait，被唤醒或者等待时间到达则线程进入就绪状态
+        // join执行时，代码不会向下执行，直到subThread结束执行
+        subThread.join(5000);//带超时时间，进入wait，被唤醒或者等待时间到达则线程进入就绪状态
 
         System.out.println("main stop ");
     }
