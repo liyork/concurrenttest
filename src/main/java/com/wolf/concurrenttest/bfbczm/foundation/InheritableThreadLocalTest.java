@@ -1,0 +1,25 @@
+package com.wolf.concurrenttest.bfbczm.foundation;
+
+/**
+ * Description: 可继承的tl，让子线程可以访问父线程中设置的本地变量
+ * Created on 2021/9/3 9:16 AM
+ *
+ * @author 李超
+ * @version 0.0.1
+ */
+public class InheritableThreadLocalTest {
+    public static ThreadLocal<String> threadLocal = new InheritableThreadLocal<>();
+
+    public static void main(String[] args) {
+        // 设定main线程的本地变量
+        threadLocal.set("hello world");
+
+        Thread thread = new Thread(() -> {
+            // 子线程输出本地线程变量的值
+            System.out.println("thread:" + threadLocal.get());
+        });
+        thread.start();
+        // 主线程输出线程本地变量值
+        System.out.println("main:" + threadLocal.get());
+    }
+}
