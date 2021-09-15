@@ -6,7 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Description: 测试线程池中有LinkedBlockingQueue导致的不能通过shutdown进行停止
+ * Description: 测试，线程池中的线程用LinkedBlockingQueue.take导致的不能通过shutdown进行停止
  * Created on 2021/8/31 6:41 PM
  *
  * @author 李超
@@ -16,9 +16,9 @@ public class InterruptDemo {
     public static void main(String[] args) throws InterruptedException {
 
         LinkedBlockingQueue<String> linkedBlockingQueue = new LinkedBlockingQueue<>();
-        ExecutorService psCycleCollectorPool = Executors.newSingleThreadExecutor();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        psCycleCollectorPool.execute(() -> {
+        executorService.execute(() -> {
             try {
                 String a = linkedBlockingQueue.take();
             } catch (Exception e) {
@@ -36,10 +36,11 @@ public class InterruptDemo {
 
         TimeUnit.SECONDS.sleep(3);
 //    thread.interrupt()
+
         // 不可以
-//    psCycleCollectorPool.shutdown()
+//    executorService.shutdown()
         // 可以
-        psCycleCollectorPool.shutdownNow();
+        executorService.shutdownNow();
         TimeUnit.SECONDS.sleep(2);
     }
 

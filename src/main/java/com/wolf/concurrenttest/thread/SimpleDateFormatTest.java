@@ -39,6 +39,7 @@ public class SimpleDateFormatTest {
         }
     };
 
+    // 池化，避免每次都新建对象和销毁，不过也是有mutex锁
     private static ThreadSafeSimpleDateFormat threadSafeSimpleDateFormat = new ThreadSafeSimpleDateFormat("yyyy-MM-dd", TimeZone.getDefault(), 10, 15, true);
 
     @Test
@@ -52,8 +53,8 @@ public class SimpleDateFormatTest {
     public static void main(String[] args) {
 //        testError();
 //        testSolve();
-        testSolve2();
-//        testSolve3();
+//        testSolve2();
+        testSolve3();
     }
 
     private static void testError() {

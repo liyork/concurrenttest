@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--配合讲解-->
+<configuration>
+    <!--配置同步日志打印appender-->
+    <appender name="PROJECT" class="ch.qos.logback.core.FileAppender">
+        <file>project.log</file>
+        <encoding>UTF-8</encoding>
+        <append>true</append>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--            daily rollover-->
+            <fileNamePattern>project.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <!--            keep 7 days' worth of history-->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[
+            %n%-4r [%d{yyyy-MM-dd HH:mm:ss}] %X{productionMode} -%X{method}
+            %X{requestURIWithQueryString} [ip=%X{remoteAddr}, ref=%X{referror},
+            ua=%X{userAgent}, sid=%X{cookie.JSESSIONID}]%n  %-5level %logger{35} - %m%n
+            ]]></pattern>
+        </layout>
+    </appender>
+
+    <!--    异步日志-->
+    <appender name="asyncProject" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>1024</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="PROJECT"/>
+    </appender>
+
+    <!--    设置logger-->
+    <logger name="PROJECT_LOGGER" additivity="false">
+        <level value="WARN"/>
+        <!--        用同步日志-->
+        <!--        <appender-ref ref="PROJECT"/>-->
+        <!--        用异步日志-->
+        <appender-ref ref="asyncProject"/>
+    </logger>
+</configuration>
