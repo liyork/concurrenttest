@@ -3572,7 +3572,7 @@ public int size(){
 ```
 
 3. 案例介绍
-简单例子，参见：TestDelay
+简单例子，参见：DelayQueueTest
 
 小结：
 内部用PriorityQueue存放数据，用ReentrantLock实现线程同步。

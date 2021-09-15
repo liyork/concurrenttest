@@ -1,0 +1,119 @@
+jmap -dump:format=b,file=test.hprof 12904
+
+### mat使用
+参见：HeapDumpTest
+点击Histogram
+在 "Class Name"下方的搜索框输入类名：“School”，按回车，可以看到School class有3个Object。
+
+选中"demo.heap.School"那一行，然后在右键菜单选择List objects -> with outgoing references
+可以看到3个School objects，展开其中一个School object，可以看到它的studentList字段下有5个Student objects。
+
+### Incoming 与 Outgoing References
+参见：IncomingAndOutgoing
+
+A->C
+B->C
+C->C/D/E
+对于A来说，C是它的Outgoing reference
+对于B来说，C是它的Outgoing reference
+对C来说，A，B和 “Class C的instance” 是它的Incoming references；D，E和 “Class C” 是它的Outgoing references。
+对于D来说，C是它的Incoming reference
+对于E来说，C是它的Incoming reference
+
+
+jmap -dump:format=b,file=test.hprof 13099
+
+输入 jvm(包名) 进行搜索
+选中 “jvm.heap.C”，右键菜单 “List objects -> with outgoing references”  看到d、e
+返回 Histogram tab页，选中 “demo.heap.C”，右键菜单 “List objects -> with incoming references”  看到
+
+
+### Shallow Size 与 Retained Size
+Shallow Size: 对象自身所占内存的大小
+Retained Size: 对象被GC后，能释放的总大小（对象被GC时，会连带把只由它引用的其他对象一同回收）
+
+参见：ShallowAndRetainedSize
+
+A1->B1/C1
+B1->D1/E1
+C1->F1/G1
+
+打开heap dump
+点击Histogram
+输入jvm
+默认只显示了对象的Shallow Size，没有Retained Size，这是因为Retained Size需要计算，点击一下计算器图标，下拉Calculate Retained Size按钮
+
+
+Shallow Size 和 Retained Size的计算
+注意事项:
+当前环境为 64bit OS；
+当前JVM的 -Xmx 设置小于32G，对象引用的大小均为4B(bytes)；一旦 -Xmx >= 32G，对象引用的大小会变成8B；
+64bit OS下，每个对象占用的最小内存为16B，其中12B是头部，对象内存占用大小必须是 8B 的倍数，如果对象没有任何字段，则存在4B Padding。
+
+
+Object Size的计算
+
+
+### OOM 后获取 heap dump
+参见：OOMTest
+注意事项：
+HeapDumpPath 当前用户必须有权限对其进行写操作
+如果 HeapDumpPath 已经有文件存在，dump会失败
+
+使用MAT打开 heap dump，在向导界面中选择 Leak Suspects Report
+从黄页可以看出 java.util.LinkedList 的一个实例占用了 98.77% 的bytes。
+点击Details
+
+从Accumulated Objects in Dominator Tree中
+看到OOMTest下面是LinkedLIst
+
+点击`Accumulated Objects in Dominator Tree`中的“class OOMTest”，选择 List objects -> with outgoing references：
+
+可以看出 OOMTest 的 bsList 占用了 20M+ 的bytes。选中 bsList，从右键菜单中选择 Path To GC Roots -> exclude weak references：
+
+可以看到 bsList 被引用着，所以它没法被 GC，最终因为没法分配更多内存而导致了OOM。
+
+
+还可以通过 dominator_tree 来直观地查看各个class占用的内存
+按照RetainedHeap排序
+可以看到 LinkedList 中的两个元素，分别指向10M的 byte数组
+
+
+### 多classloader加载类
+参见：MoClassLoader
+
+生成heapdump
+Histogram中，点击文件夹下拉，选择 Group by class loader
+可以看到 MO这个class被3个 ClassLoader所加载。
+
+
+### ClassLoader 泄漏导致 OOM
+参见：LeakClassLoader
+MAT分析 dump，使用 Leak Suspects
+点击Details »
+是不是很奇怪，LinkedList 竟然占用了 98.96% 的内存，但我们的代码只是不断往里面添加 Leak 的实例，而 class Leak 是没有任何字段的，根据上面 Shallow Size的计算，Leak 的实例只有16B
+
+点击 LinkedListNode的class，选择 List objects -> with outgoing references:
+层层展开
+
+从图中可以看出：
+
+Leak 的实例确实只占用了 16B，但是Leak的ClassLoader确占据了大部分的内存
+一层层点开ClassLoader，可以看到ClassLoader下面的classes -> elementData里面存放了2个class，其中一个是class Leak，另外一个就是class MO
+class MO占据了大部分的内存，继续点开，发现它里面有一个(br数组) 5,242,896 (5MB)的byte数组
+
+
+结合代码进行分析，不难看出：
+while里面每一次循环都用一个新的ClassLoader来加载class MO，每个class MO本身有一个5MB的static字段
+while里面虽然创建了class MO的实例，但没有引用它，所以实例会被GC  --即newMoClass.newInstance()
+while里面创建了class Leak的实例，然后加入LinkedList，Leak实例被LinkedList引用了，所以不会被GC
+Leak实例引用了class Leak，所以class Leak不会被GC
+class Leak引用了ClassLoader，所以对应的ClassLoader不会被GC
+ClassLoader里面的classes字段引用了class MO，所以class MO不会被GC
+
+选中 class MO，从右键菜单中选择 Path to GC Roots -> exclude weak references:
+可以看到，从mo的class向下，直到gc根，这里是Thread
+
+
+Java heap dump及分析
+https://blog.csdn.net/helowken2/article/details/95483517
