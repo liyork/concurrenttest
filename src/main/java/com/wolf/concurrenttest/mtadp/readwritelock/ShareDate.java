@@ -1,8 +1,9 @@
 package com.wolf.concurrenttest.mtadp.readwritelock;
 
+import com.wolf.concurrenttest.mtadp.common.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Description:
@@ -39,7 +40,7 @@ public class ShareDate {
             for (int i = 0; i < length; i++) {
                 newBuffer[i] = container.get(i);
             }
-            slowly();
+            Utils.slowly();
             return newBuffer;
         } finally {
             readLock.unlock();
@@ -54,18 +55,9 @@ public class ShareDate {
             for (int i = 0; i < length; i++) {
                 this.container.add(i, c);
             }
-            slowly();
+            Utils.slowly();
         } finally {
             writeLock.unlock();
-        }
-    }
-
-    private void slowly() {
-
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }
