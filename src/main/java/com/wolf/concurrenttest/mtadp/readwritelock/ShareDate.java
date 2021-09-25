@@ -40,7 +40,7 @@ public class ShareDate {
             for (int i = 0; i < length; i++) {
                 newBuffer[i] = container.get(i);
             }
-            Utils.slowly();
+            Utils.slowly(1);
             return newBuffer;
         } finally {
             readLock.unlock();
@@ -55,7 +55,7 @@ public class ShareDate {
             for (int i = 0; i < length; i++) {
                 this.container.add(i, c);
             }
-            Utils.slowly();
+            Utils.slowly(1);
         } finally {
             writeLock.unlock();
         }

@@ -38,6 +38,7 @@ public final class IntegerAccumulator2 {  // 不可变对象不允许被继承�
         IntegerAccumulator2 accumulator = new IntegerAccumulator2(0);
         IntStream.range(0, 3).forEach(i -> new Thread(() -> {
             int inc = 0;
+
             while (true) {
                 int oldValue = accumulator.getValue();
                 // 各线程操作自己对象，不对别人有影响，就是各自操作各自的了
@@ -47,7 +48,7 @@ public final class IntegerAccumulator2 {  // 不可变对象不允许被继承�
                     System.out.println("ERROR:" + oldValue + "+" + inc + "=" + result);
                 }
                 inc++;
-                Utils.slowly();
+                Utils.slowly(1);
             }
         }).start());
     }

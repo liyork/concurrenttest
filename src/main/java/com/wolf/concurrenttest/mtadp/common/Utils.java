@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
  * @version 0.0.1
  */
 public class Utils {
-    public static void slowly() {
+    public static void slowly(long timeout) {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(timeout);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

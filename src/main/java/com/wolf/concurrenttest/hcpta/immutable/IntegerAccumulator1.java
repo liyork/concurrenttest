@@ -45,7 +45,7 @@ public class IntegerAccumulator1 {
                     System.out.println("ERROR:" + oldValue + "+" + inc + "=" + result);
                 }
                 inc++;
-                Utils.slowly();
+                Utils.slowly(1);
             }
         }).start());
     }
